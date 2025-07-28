@@ -8,7 +8,9 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@types/bcrypt": "^6.0.0",
     "axios": "^1.6.0",
+    "bcrypt": "^6.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0"
   },
@@ -40,6 +42,7 @@
   },
   "workspaces": [
     "apps/*",
-    "libs/shared/types"
+    "libs/shared/types",
+    "libs/shared/helpers"
   ]
 }
