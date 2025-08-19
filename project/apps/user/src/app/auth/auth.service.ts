@@ -51,6 +51,12 @@ export class AuthService {
   }
 
   public async getUser(id: string) {
-    return this.userRepository.findById(id);
+    const existingUser = await this.userRepository.findById(id);
+
+    if (!existingUser) {
+      throw new NotFoundException(AUTH_USER_NOT_FOUND);
+    }
+
+    return existingUser;
   }
 }
