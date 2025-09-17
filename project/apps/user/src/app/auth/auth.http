@@ -1,0 +1,52 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Create a new user
+# @name register
+POST http://{{host}}/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "name": "John Doe",
+  "password": "12345678"
+}
+
+###
+
+# Get user by ID
+GET http://{{host}}/api/auth/{{register.response.body.id}} HTTP/1.1
+
+###
+
+# Login user by email and password
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "12345678"
+}
+
+###
+
+# Try to login user by email and wrong password
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrong-password"
+}
+
+###
+
+# Try to login user by fake email
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "fake-email@example.com",
+  "password": "12345678"
+}

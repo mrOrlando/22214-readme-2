@@ -8,7 +8,11 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.2.0",
+    "@types/bcrypt": "^6.0.0",
     "axios": "^1.6.0",
+    "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0"
   },
@@ -30,6 +34,7 @@
     "@types/node": "~18.16.9",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
+    "jsonc-eslint-parser": "^2.1.0",
     "nx": "21.2.3",
     "prettier": "^2.6.2",
     "tslib": "^2.3.0",
@@ -38,6 +43,8 @@
     "webpack-cli": "^5.1.4"
   },
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "libs/shared/types",
+    "libs/shared/helpers"
   ]
 }
