@@ -9,13 +9,13 @@ export type UserDocument = HydratedDocument<User>;
 })
 export class User {
   @Prop()
-  name: string;
+  name!: string;
 
   @Prop()
-  age: number;
+  age!: number;
 
   @Prop()
-  birthDate: Date;
+  birthDate!: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
