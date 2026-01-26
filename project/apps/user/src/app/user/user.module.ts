@@ -7,7 +7,7 @@ import { User, UserSchema } from './user.schema';
 @Module({
   imports: [
     MongooseModule.forRoot(
-      'mongodb://admin:test@localhost:27017/nest-example?authSource=admin'
+      'mongodb://admin:test@localhost:27017/readme-users?authSource=admin'
     ),
 
     MongooseModule.forFeature([
