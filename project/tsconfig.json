@@ -26,6 +26,9 @@
     },
     {
       "path": "./libs/shared/helpers"
+    },
+    {
+      "path": "./libs/shared/config"
     }
   ]
 }
