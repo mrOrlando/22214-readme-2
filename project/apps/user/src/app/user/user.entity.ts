@@ -3,7 +3,7 @@ import { Entity } from '@project/helpers';
 import { SALT_ROUNDS } from './user.constants';
 import bcrypt from 'bcrypt';
 
-export class UserEntity implements AuthUser, Entity<string> {
+export class UserEntity implements AuthUser, Entity<string, AuthUser> {
   public id?: string;
   public email!: string;
   public name!: string;
