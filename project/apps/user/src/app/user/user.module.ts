@@ -6,10 +6,6 @@ import { User, UserSchema } from './user.schema';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb://admin:test@localhost:27017/readme-users?authSource=admin'
-    ),
-
     MongooseModule.forFeature([
       {
         name: User.name,
