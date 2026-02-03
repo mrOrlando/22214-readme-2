@@ -3,7 +3,7 @@ import Joi from 'joi';
 
 const DEFAULT_MONGO_PORT = 27017;
 
-export interface MongoConfig {
+interface MongoConfig {
   host: string;
   name: string;
   port: number;
