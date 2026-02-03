@@ -5,7 +5,7 @@ import { NotFoundException } from '@nestjs/common';
 
 export abstract class BaseMongoRepository<
   EntityType extends Entity<EntityIdType>,
-  DocumentType extends Document<EntityIdType>
+  DocumentType extends Document
 > implements Repository<EntityType>
 {
   constructor(
@@ -32,7 +32,7 @@ export abstract class BaseMongoRepository<
     const newEntity: DocumentType = new this.model(entity.toPOJO());
     await newEntity.save();
 
-    entity.id = newEntity._id.toString();
+    entity.id = String(newEntity._id);
     return entity;
   }
 

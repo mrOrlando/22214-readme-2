@@ -1,10 +1,10 @@
 import { AuthUser } from '@project/types';
-import { Entity } from '@project/helpers';
+import { DefaultPojoType, Entity, EntityIdType } from '@project/helpers';
 import { SALT_ROUNDS } from './user.constants';
 import bcrypt from 'bcrypt';
 
-export class UserEntity implements AuthUser, Entity<string, AuthUser> {
-  public id?: string;
+export class UserEntity implements AuthUser, Entity<EntityIdType> {
+  public id?: EntityIdType;
   public email!: string;
   public name!: string;
   public passwordHash!: string;
@@ -13,13 +13,13 @@ export class UserEntity implements AuthUser, Entity<string, AuthUser> {
     this.populate(user);
   }
 
-  public toPOJO(): AuthUser {
+  public toPOJO(): DefaultPojoType {
     return {
       id: this.id,
       email: this.email,
       name: this.name,
       passwordHash: this.passwordHash,
-    };
+    } as DefaultPojoType;
   }
 
   public populate(user: AuthUser): void {
@@ -35,5 +35,9 @@ export class UserEntity implements AuthUser, Entity<string, AuthUser> {
 
   public async comparePassword(password: string): Promise<boolean> {
     return await bcrypt.compare(password, this.passwordHash);
+  }
+
+  public static fromObject(data: AuthUser): UserEntity {
+    return new UserEntity(data);
   }
 }
