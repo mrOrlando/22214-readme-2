@@ -1,5 +1,5 @@
 export class CreateUserDto {
-  public name: string;
-  public age: number;
-  public birthDate: Date;
+  public name!: string;
+  public email!: string;
+  public password!: string;
 }
