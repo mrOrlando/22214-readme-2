@@ -12,6 +12,7 @@ import {
   AUTH_USER_NOT_FOUND,
   AUTH_USER_PASSWORD_WRONG,
 } from './auth.constants';
+import { UserRole } from '@project/types';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     const user = await new UserEntity({
       email: dto.email,
       name: dto.name,
+      role: UserRole.User,
       passwordHash: '',
     }).setPassword(dto.password);
 

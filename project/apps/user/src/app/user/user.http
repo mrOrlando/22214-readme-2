@@ -1,0 +1,6 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Get users
+GET http://{{host}}/api/users HTTP/1.1

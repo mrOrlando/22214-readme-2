@@ -1,12 +1,13 @@
-import { AuthUser } from '@project/types';
-import { Entity } from '@project/helpers';
+import { AuthUser, UserRole } from '@project/types';
+import { Entity, EntityIdType } from '@project/helpers';
 import { SALT_ROUNDS } from './user.constants';
 import bcrypt from 'bcrypt';
 
-export class UserEntity implements AuthUser, Entity<string> {
-  public id?: string;
+export class UserEntity implements AuthUser, Entity<EntityIdType, AuthUser> {
+  public id?: EntityIdType;
   public email!: string;
   public name!: string;
+  public role!: UserRole;
   public passwordHash!: string;
 
   constructor(user: AuthUser) {
@@ -18,6 +19,7 @@ export class UserEntity implements AuthUser, Entity<string> {
       id: this.id,
       email: this.email,
       name: this.name,
+      role: this.role,
       passwordHash: this.passwordHash,
     };
   }
@@ -25,6 +27,7 @@ export class UserEntity implements AuthUser, Entity<string> {
   public populate(user: AuthUser): void {
     this.email = user.email;
     this.name = user.name;
+    this.role = user.role;
     this.passwordHash = user.passwordHash;
   }
 
@@ -35,5 +38,9 @@ export class UserEntity implements AuthUser, Entity<string> {
 
   public async comparePassword(password: string): Promise<boolean> {
     return await bcrypt.compare(password, this.passwordHash);
+  }
+
+  public static fromObject(data: AuthUser): UserEntity {
+    return new UserEntity(data);
   }
 }
