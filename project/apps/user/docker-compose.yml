@@ -13,6 +13,11 @@ services:
       - 27017:27017
     volumes:
       - mongodb:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/readme-users --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   readme.users.mongo.ui:
     image: mongo-express
