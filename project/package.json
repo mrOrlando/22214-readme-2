@@ -51,6 +51,7 @@
     "apps/*",
     "libs/shared/types",
     "libs/shared/helpers",
-    "libs/shared/config"
+    "libs/shared/config",
+    "libs/shared/blog/models"
   ]
 }
