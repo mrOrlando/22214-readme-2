@@ -34,3 +34,9 @@ Cloud: npx create-db (creates a free Prisma Postgres database)
 Then, define your models in prisma/schema.prisma and run prisma migrate dev to apply your schema.
 
 Learn more: https://pris.ly/getting-started
+
+### Creating migrations
+
+```sh
+npx prisma migrate dev --name "Added model for Post" --schema ./prisma/schema.prisma
+```
