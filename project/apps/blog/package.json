@@ -61,6 +61,13 @@
           "cwd": "libs/shared/blog/models",
           "command": "npx prisma migrate reset --schema prisma/schema.prisma --force"
         }
+      },
+      "db:generate": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "libs/shared/blog/models",
+          "command": "npx prisma generate --schema prisma/schema.prisma"
+        }
       }
     }
   }
