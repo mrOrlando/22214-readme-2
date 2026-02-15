@@ -40,6 +40,12 @@
             "buildTarget": "blog:build:production"
           }
         }
+      },
+      "db:lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "npx prisma validate --schema libs/shared/blog/models/prisma/schema.prisma"
+        }
       }
     }
   }
