@@ -44,7 +44,22 @@
       "db:lint": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "npx prisma validate --schema libs/shared/blog/models/prisma/schema.prisma"
+          "cwd": "libs/shared/blog/models",
+          "command": "npx prisma validate --schema prisma/schema.prisma"
+        }
+      },
+      "db:migrate": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "libs/shared/blog/models",
+          "command": "npx prisma migrate dev --schema prisma/schema.prisma"
+        }
+      },
+      "db:reset": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "libs/shared/blog/models",
+          "command": "npx prisma migrate reset --schema prisma/schema.prisma --force"
         }
       }
     }
