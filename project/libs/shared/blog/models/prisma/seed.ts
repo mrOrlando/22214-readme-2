@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../src/generated/prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const FIRST_CATEGORY_UUID = '39614113-7ad5-45b6-8093-06455437e1e2';
 const SECOND_CATEGORY_UUID = 'efd775e2-df55-4e0e-a308-58249f5ea202';
