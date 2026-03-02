@@ -1,6 +1,5 @@
 import 'dotenv/config';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import { prismaClient, PrismaClient } from '../src/prisma-client';
 
 const FIRST_CATEGORY_UUID = '39614113-7ad5-45b6-8093-06455437e1e2';
 const SECOND_CATEGORY_UUID = 'efd775e2-df55-4e0e-a308-58249f5ea202';
@@ -90,13 +89,6 @@ async function seedDb(prismaClient: PrismaClient) {
 }
 
 async function bootstrap() {
-  const connectionString = globalThis.process.env['DATABASE_URL'];
-  if (!connectionString) {
-    throw new Error('DATABASE_URL is not set');
-  }
-  const adapter = new PrismaPg({ connectionString });
-  const prismaClient = new PrismaClient({ adapter });
-
   try {
     await seedDb(prismaClient);
     globalThis.process.exit(0);
