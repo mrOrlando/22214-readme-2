@@ -16,7 +16,7 @@ export class BlogCategoryEntity implements Category, Entity<string, Category> {
   }
 
   public populate(data: Category): void {
-    this.id = data.id ?? '';
+    this.id = data.id ?? undefined;
     this.title = data.title;
     this.updatedAt = data.updatedAt ?? undefined;
     this.createdAt = data.createdAt ?? undefined;
@@ -29,5 +29,9 @@ export class BlogCategoryEntity implements Category, Entity<string, Category> {
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
+  }
+
+  public static fromObject(data: Category): BlogCategoryEntity {
+    return new BlogCategoryEntity(data);
   }
 }
