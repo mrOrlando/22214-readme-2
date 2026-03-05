@@ -3,6 +3,11 @@ import { BasePostgresRepository } from '@project/helpers';
 import { BlogCategoryEntity } from './blog-category.entity';
 import { Category } from '@project/types';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  CategoryFilter,
+  categoryFilterToPrismaFilter,
+} from './blog-category.filter';
+import { MAX_CATEGORIES_LIMIT } from './blog-category.constants';
 
 @Injectable()
 export class BlogCategoryRepository extends BasePostgresRepository<
@@ -23,6 +28,17 @@ export class BlogCategoryRepository extends BasePostgresRepository<
     }
 
     return this.createEntityFromDocument(category);
+  }
+
+  public async find(filter?: CategoryFilter): Promise<BlogCategoryEntity[]> {
+    const categories = await this.client.category.findMany({
+      where: categoryFilterToPrismaFilter(filter),
+      take: MAX_CATEGORIES_LIMIT,
+    });
+
+    return categories
+      .map((category) => this.createEntityFromDocument(category))
+      .filter((category): category is BlogCategoryEntity => category !== null);
   }
 
   override async save(entity: BlogCategoryEntity): Promise<BlogCategoryEntity> {
