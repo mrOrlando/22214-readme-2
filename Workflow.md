@@ -1,188 +1,144 @@
 # Как работать над проектом
 
-## Окружение
+Краткая памятка по монорепозиторию **Nx**: все команды ниже — из каталога **`project`** (там лежит корневой `package.json`), если не сказано иначе.
 
-Для удобства работы над проектом используются инструменты из **Node.js** и **npm**. Все необходимые настройки произведены. Убедитесь, что на рабочем компьютере установлена **Node.js** подходящей версии (ориентируйтесь на требования курса или на версию, с которой собирается проект у вас локально). После клонирования репозитория в терминале перейдите в каталог **`project`** (в нём лежит `package.json` монорепозитория) и _единожды_ выполните:
+## Содержание
+
+1. [Окружение](#setup)
+2. [Команды Nx](#nx-commands)
+3. [Запуск и ссылки в браузере](#run-urls)
+4. [Docker и env-файлы](#docker-env)
+5. [PostgreSQL: Prisma, сиды, Studio](#prisma)
+6. [Структура репозитория](#repo-layout)
+
+---
+
+<a id="setup"></a>
+
+## 1. Окружение
+
+- Нужны **Node.js** и **npm** (версию ориентируйте на курс или на то, что собирается у вас локально).
+- Один раз после клонирования:
 
 ```bash
 cd project
 npm install
 ```
 
-Данная команда установит зависимости рабочего пространства **npm** (в т.ч. **Nx**).
+- В примерах целей Nx используется приложение **`blog`**. Другие проекты: `npx nx show projects`.
 
-### Сценарии
+---
 
-Сборка, линт и запуск настроены через **Nx**. Команды ниже выполняются из каталога **`project`**. В примерах указано приложение **`blog`** — при работе с другим приложением замените имя проекта (список: `npx nx show projects`).
+<a id="nx-commands"></a>
 
-#### Проверка типов (TypeScript)
+## 2. Команды Nx
 
-```bash
-npx nx run blog:typecheck
-```
+| Задача | Команда |
+|--------|---------|
+| Проверка типов | `npx nx run blog:typecheck` |
+| Сборка | `npx nx run blog:build` → артефакты в `apps/blog/dist` |
+| Линт одного приложения | `npx nx run blog:lint` |
+| Линт всего репозитория | `npx nx run-many -t lint` |
+| Запуск приложения | `npx nx run blog:serve` (сначала build, затем процесс) |
+| Сборка всех приложений | `npx nx run-many -t build` |
+| Скрипт на TypeScript | `npx tsx путь/к/файлу.ts` |
 
-Проверка типов без полной webpack-сборки (задача **typecheck**).
+**Очистка**
 
-#### Сборка приложения
+- Каталог сборки: `rm -rf apps/blog/dist` (при необходимости подставьте другое приложение).
+- Кэш Nx (не то же самое, что `dist`): `npx nx reset`.
 
-```bash
-npx nx run blog:build
-```
+---
 
-Результат сборки попадает в каталог `apps/blog/dist` (относительно `project`).
+<a id="run-urls"></a>
 
-#### Очистка артефактов сборки
+## 3. Запуск и ссылки в браузере
 
-Отдельной npm-команды для удаления `dist` нет. При необходимости удалите каталог вручную, например:
+| Сервис | Запуск | Что открыть |
+|--------|--------|-------------|
+| **blog** | `npx nx run blog:serve` | API: [http://localhost:3000/api](http://localhost:3000/api) (`GET`). Порт: **`PORT`**, по умолчанию **3000**. Префикс маршрутов: **`/api`**. Swagger UI в коде **не** подключён. |
+| **@project/user** | `npx nx run @project/user:serve` | Swagger: **`/spec`** — например [http://localhost:3333/spec](http://localhost:3333/spec) (порт из **`apps/user/user.env`**, в примере **3333**). Если не открывается — попробуйте **`/api/spec`**. |
 
-```bash
-rm -rf apps/blog/dist
-```
+Точный URL после старта смотрите в логе приложения.
 
-Очистка кэша Nx (не то же самое, что удаление `dist`):
+---
 
-```bash
-npx nx reset
-```
+<a id="docker-env"></a>
 
-#### Линтинг
+## 4. Docker и env-файлы
 
-```bash
-npx nx run blog:lint
-```
+### Перед первым `docker compose up`
 
-Запуск **ESLint** для выбранного проекта (для приложения blog это файлы в `apps/blog`, в первую очередь каталог `src`).
+1. Рядом с нужным **`docker-compose.yml`** должен быть **заполненный** env-файл; если его нет — скопируйте **`*.env.example`** и отредактируйте.
+2. **Blog:** `DATABASE_URL` в **`project/.env`** должен совпадать с пользователем, паролем, хостом, портом и именем БД из **`apps/blog/blog.env`**.
+3. **User:** **`apps/user/user.env`** должен совпадать с **`docker-compose.yml`** в `apps/user` (по умолчанию как в **`user.env.example`**: `admin` / `test`, база **`readme-users`**).
 
-**Обратите внимание:** при ошибках линтера сообщения выводятся в терминал.
+После смены учётных данных может понадобиться пересоздать контейнеры и тома (см. материалы курса).
 
-Проверить все проекты в монорепозитории:
+### Blog — Postgres и pgAdmin
 
-```bash
-npx nx run-many -t lint
-```
+| | |
+|--|--|
+| Файлы | **`apps/blog/blog.env`** (из **`blog.env.example`**), плюс **`project/.env`** → **`DATABASE_URL`** |
+| Запуск | `cd apps/blog` → при необходимости `cp blog.env.example blog.env` → правки → `docker compose up -d` |
+| Postgres | `localhost:5432` (логин/пароль в `blog.env*`) |
+| pgAdmin | [http://localhost:8082](http://localhost:8082) — email/пароль из **`PGADMIN_*`** в `blog.env*` |
 
-#### Запуск TypeScript-файла без отдельной сборки
+**Мастер-пароль pgAdmin** («Unlock Saved Passwords») задаётся **в самом pgAdmin**, не в `blog.env`. В учебных примерах часто везде **`test`** — им же иногда задают мастер-пароль; если не подошёл — **Reset Master Password**, затем пароль сервера БД снова из `blog.env` (часто **`test`**).
 
-В проекте доступен **tsx** (например, для скриптов). Пример:
+### User — MongoDB и mongo-express
 
-```bash
-npx tsx путь/к/файлу.ts
-```
+| | |
+|--|--|
+| Файлы | **`apps/user/user.env`** (из **`user.env.example`**) |
+| Запуск | `cd apps/user` → при необходимости `cp user.env.example user.env` → `docker compose up -d` |
+| MongoDB | `localhost:27017` |
+| mongo-express | [http://localhost:8081](http://localhost:8081) |
 
-#### Запуск приложения
+---
 
-```bash
-npx nx run blog:serve
-```
+<a id="prisma"></a>
 
-Сначала выполняется сборка (**build**), затем запускается собранное приложение (режим по умолчанию — **development**).
+## 5. PostgreSQL: Prisma, сиды, Studio
 
-После старта в логе появится строка с базовым адресом API. По умолчанию сервер слушает порт **3000** (его можно переопределить переменной окружения **`PORT`**), у всех маршрутов префикс **`/api`**.
+Цели Nx (из **`project`**): `blog:db:generate`, `blog:db:migrate`, `blog:db:seed`, `blog:db:lint`, `blog:db:reset` — полный список в **`apps/blog/package.json`** → **nx.targets**.
 
-Откройте в браузере или вызовите из клиента API: [http://localhost:3000/api](http://localhost:3000/api) — корневой маршрут приложения (`GET`).
-
-Если задан другой порт, замените `3000` в адресе на значение из лога или из `PORT`.
-
-Сборка всех приложений с целью **build**:
-
-```bash
-npx nx run-many -t build
-```
-
-## Документация API и базы данных
-
-### Документация API (Swagger)
-
-- **Приложение `blog`** — отдельная страница Swagger в коде не подключена (есть только декораторы в DTO). Проверять API удобно по корневому маршруту [http://localhost:3000/api](http://localhost:3000/api) (см. выше про порт **`PORT`**).
-- **Приложение `@project/user`** — после запуска `npx nx run @project/user:serve` откройте **Swagger UI** по пути **`/spec`**. Порт задаётся переменной **`PORT`** (см. `apps/user/user.env.example`, там по умолчанию **3333**): [http://localhost:3333/spec](http://localhost:3333/spec). Если страница не открывается, проверьте также **`/api/spec`** — в зависимости от настроек Nest маршрут может отличаться.
-
-### База данных и веб-интерфейсы
-
-**Перед первым `docker compose up`** (и если вы ещё не настраивали окружение):
-
-1. Найдите рядом с `docker-compose.yml` нужный **env-файл** и убедитесь, что он **есть** и **заполнен** (если файла нет — скопируйте из соответствующего **`*.env.example`** и при необходимости отредактируйте).
-2. Сверьте значения с приложением: для blog строка **`DATABASE_URL`** в **`project/.env`** должна соответствовать пользователю, паролю, хосту, порту и имени БД из **`apps/blog/blog.env`**. Для user параметры MongoDB в **`apps/user/user.env`** должны совпадать с тем, как поднят контейнер (в **`apps/user/docker-compose.yml`** по умолчанию `admin` / `test` и база **`readme-users`** — как в **`user.env.example`**).
-
-После правок env-файлов при необходимости пересоздайте контейнеры и тома (см. подсказки в материалах курса), чтобы БД инициализировалась с новыми учётными данными.
-
-**Blog (PostgreSQL, Prisma)**
-
-- Строка подключения **`DATABASE_URL`** — в файле **`project/.env`** (образец: **`project/.env.example`**).
-- В **`apps/blog`** для Compose обязателен **`blog.env`**: проверьте **`POSTGRES_*`** и **`PGADMIN_*`**, затем запускайте Docker. Если **`blog.env`** ещё нет — скопируйте **`blog.env.example`** и при необходимости поправьте значения под себя.
-
-```bash
-cd apps/blog
-# при отсутствии blog.env:
-cp blog.env.example blog.env
-# откройте blog.env и при необходимости отредактируйте; то же для project/.env → DATABASE_URL
-docker compose up -d
-```
-
-- Postgres на хосте: **localhost:5432** (учётные данные в **`apps/blog/blog.env`** или **`blog.env.example`**).
-- **pgAdmin** в браузере: [http://localhost:8082](http://localhost:8082) (логин и пароль администратора — в тех же `blog.env*`).
-
-Отдельно от входа в pgAdmin: при сохранении паролей к серверам приложение может спросить **мастер-пароль** (окно вроде «Unlock Saved Passwords»). Этот пароль **не** берётся из `blog.env` — вы задаёте его сами в pgAdmin. В учебной конфигурации во всех примерах используется простой пароль **`test`** (и для веб-входа в pgAdmin, и для пользователя Postgres), поэтому мастер-пароль для сохранённых паролей часто тоже выбирают **`test`**. Если не подходит — сбросьте мастер-пароль в диалоге (**Reset Master Password**) и заново введите пароль сервера (**`test`**, если не меняли `POSTGRES_PASSWORD`).
-
-Полезные цели Nx для схемы Prisma (из **`project`**): `npx nx run blog:db:generate`, `blog:db:migrate`, `blog:db:seed`, `blog:db:lint`, `blog:db:reset` и др. (см. `apps/blog/package.json`, секция **nx.targets**).
-
-Просмотр данных через **Prisma Studio** (из **`project`**):
+### Prisma Studio
 
 ```bash
 cd libs/shared/blog/models
 npx prisma studio --schema prisma/schema.prisma
 ```
 
-В терминале будет указан локальный URL (обычно [http://localhost:5555](http://localhost:5555)).
+Обычно откроется [http://localhost:5555](http://localhost:5555) (см. вывод в терминале).
 
-#### Сидирование базы (только blog / PostgreSQL)
+### Сидирование (только blog)
 
-В репозитории есть скрипт заполнения тестовыми данными для схемы Prisma (**категории, посты, комментарии** — см. `libs/shared/blog/models/prisma/seed.ts`). Для **MongoDB** (сервис **user**) отдельного сидирования в проекте нет.
+В репозитории есть сид для Prisma (`libs/shared/blog/models/prisma/seed.ts`: категории, посты, комментарии). Для **MongoDB / user** отдельного сида нет.
 
-Условия: Postgres из Docker запущен, **`DATABASE_URL`** в **`project/.env`** совпадает с **`apps/blog/blog.env`**, миграции применены.
-
-Из каталога **`project`** по порядку:
+**Условия:** Postgres в Docker запущен, **`DATABASE_URL`** согласован с **`blog.env`**, миграции применены.
 
 ```bash
-npx nx run blog:db:generate   # клиент Prisma, если ещё не собирали
-npx nx run blog:db:migrate    # применить миграции к БД
-npx nx run blog:db:seed       # заполнить данные
+npx nx run blog:db:generate
+npx nx run blog:db:migrate
+npx nx run blog:db:seed
 ```
 
-Задача **`db:seed`** запускается с рабочей папкой **`libs/shared/blog/models`**; **`dotenv`** по умолчанию ищет **`.env` там же**. Если в консоли ошибка **`DATABASE_URL is not set`**, задайте переменную перед командой (скопируйте строку из **`project/.env`**) или положите в **`libs/shared/blog/models/.env`** ту же пару **`DATABASE_URL=...`**, что и в корне монорепозитория.
+**Если `DATABASE_URL is not set`:** задача работает из **`libs/shared/blog/models`**; положите туда **`.env`** с той же **`DATABASE_URL`**, что в **`project/.env`**, или экспортируйте переменную в терминале перед командой.
 
-Повторный запуск **`db:seed`** без очистки БД может завершиться ошибкой из‑за уже существующих записей (посты создаются через `create`, а не `upsert`). Чтобы начать с пустой схемы после миграций, можно выполнить **`npx nx run blog:db:reset`** (удалит данные в БД по правилам **`prisma migrate reset`**; используйте осознанно), затем при необходимости снова **`blog:db:seed`**.
+**Повторный `db:seed`** может упасть из‑за дубликатов постов. Очистка по правилам Prisma: **`npx nx run blog:db:reset`** (осторожно: сотрёт данные), затем при необходимости снова **`blog:db:seed`**.
 
-**User (MongoDB)**
+---
 
-- Настройки приложения **`@project/user`** читаются из **`apps/user/user.env`**. Перед запуском Docker и сервиса убедитесь, что файл есть (скопируйте **`user.env.example` → `user.env`**, если ещё не делали) и что **`MONGO_*`** совпадают с **`docker-compose.yml`** в этой же папке (логин, пароль, имя БД, порт).
-- Поднять MongoDB и **mongo-express** из **`project`**:
+<a id="repo-layout"></a>
 
-```bash
-cd apps/user
-# при отсутствии user.env: cp user.env.example user.env и проверьте значения
-docker compose up -d
-```
+## 6. Структура репозитория
 
-- MongoDB: **localhost:27017**; **mongo-express**: [http://localhost:8081](http://localhost:8081).
+| Путь | Назначение |
+|------|------------|
+| **`project/`** | Корень Nx: `package.json`, `nx.json`, `apps/`, `libs/` |
+| **`project/apps/<имя>/src`** | Исходники сервиса (blog → `project/apps/blog/src`) |
+| **`Readme.md`** (корень, рядом с `project`) | Памятка по учебному репозиторию |
+| **`Contributing.md`** | Работа с Git и ветками |
 
-## Структура проекта
-
-### Каталог `project`
-
-Рабочее пространство **Nx**: общий `package.json`, конфигурация `nx.json`, приложения в `apps/`, общие библиотеки в `libs/`.
-
-### Исходный код приложений
-
-Код конкретного сервиса лежит в `project/apps/<имя>/src` (для blog — `project/apps/blog/src`). Структура внутри `src` может быть произвольной в рамках задания.
-
-### Файл `Readme.md`
-
-Инструкции по работе с учебным репозиторием (в корне репозитория, рядом с каталогом `project`).
-
-### Файл `Contributing.md`
-
-Советы и инструкции по внесению изменений в учебный репозиторий.
-
-### Остальное
-
-Все остальные файлы в проекте являются служебными. Пожалуйста, не удаляйте и не изменяйте их самовольно. Только если того требует задание или наставник.
+Остальные файлы считайте служебными: не удаляйте и не меняйте без задания или указания наставника.
