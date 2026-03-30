@@ -103,7 +103,17 @@ npm install
 
 ## 5. PostgreSQL: Prisma, сиды, Studio
 
-Цели Nx (из **`project`**): `blog:db:generate`, `blog:db:migrate`, `blog:db:seed`, `blog:db:lint`, `blog:db:reset` — полный список в **`apps/blog/package.json`** → **nx.targets**.
+Команды выполняются из каталога **`project`**. Цели для Prisma/БД объявлены в **`apps/blog/package.json`** → **nx.targets** (ниже); остальные цели **`blog`** (**`build`**, **`serve`**, **`lint`** и т.д.) смотрите там же.
+
+| Цель Nx | Команда | Назначение |
+|---------|---------|------------|
+| **`blog:db:generate`** | `npx nx run blog:db:generate` | Сгенерировать **Prisma Client** по схеме (`prisma generate`). |
+| **`blog:db:migrate`** | `npx nx run blog:db:migrate` | Применить миграции в режиме разработки (`prisma migrate dev`). |
+| **`blog:db:seed`** | `npx nx run blog:db:seed` | Заполнить БД тестовыми данными (`prisma/seed.ts` через **tsx**). |
+| **`blog:db:lint`** | `npx nx run blog:db:lint` | Проверить схему Prisma (`prisma validate`). |
+| **`blog:db:reset`** | `npx nx run blog:db:reset` | Сбросить БД и заново накатить миграции (`prisma migrate reset --force`); **удаляет данные**. |
+
+Все эти задачи запускают команды из **`libs/shared/blog/models`** (см. **nx** в **`apps/blog/package.json`**).
 
 ### Prisma Studio
 
