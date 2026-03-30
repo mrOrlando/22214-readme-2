@@ -95,6 +95,8 @@ npm install
 | MongoDB | `localhost:27017` |
 | mongo-express | [http://localhost:8081](http://localhost:8081) |
 
+Вход в **веб-интерфейс** mongo-express (окно логина в браузере): по умолчанию у образа обычно **`admin`** / **`pass`**. Учётка **`admin`** / **`test`** в `docker-compose.yml` относится к **подключению к MongoDB**, а не к этой странице.
+
 ---
 
 <a id="prisma"></a>
@@ -105,12 +107,22 @@ npm install
 
 ### Prisma Studio
 
+Конфиг **`prisma.config.ts`** подхватывает **`project/.env`** (корень монорепозитория), поэтому **`DATABASE_URL`** не обязан дублироваться в **`libs/shared/blog/models/.env`**.
+
 ```bash
-cd libs/shared/blog/models
-npx prisma studio --schema prisma/schema.prisma
+cd project/libs/shared/blog/models
+npx prisma studio
 ```
 
-Обычно откроется [http://localhost:5555](http://localhost:5555) (см. вывод в терминале).
+В **Prisma 7** у команды **`studio`** нет флага **`--schema`** — путь к схеме задаётся в **`prisma.config.ts`**. При запуске из другой папки укажите конфиг явно: `npx prisma studio --config=путь/к/prisma.config.ts`.
+
+Либо из **`project`**: сначала `cd project`, затем `cd libs/shared/blog/models`.
+
+Адрес Studio **не фиксирован**: в **Prisma 7** в терминале выводится строка вида **`Prisma Studio is running at: http://localhost:<порт>`** (у вас может быть, например, **51212**, если **5555** занят или CLI выбрал другой порт). Открывайте именно тот URL из вывода.
+
+Чтобы задать порт явно: `npx prisma studio --port 5555` (или другой свободный порт).
+
+Если ошибка про **`DATABASE_URL`** всё же есть — проверьте, что файл **`project/.env`** существует и в нём задана строка подключения.
 
 ### Сидирование (только blog)
 
@@ -124,7 +136,7 @@ npx nx run blog:db:migrate
 npx nx run blog:db:seed
 ```
 
-**Если `DATABASE_URL is not set`:** задача работает из **`libs/shared/blog/models`**; положите туда **`.env`** с той же **`DATABASE_URL`**, что в **`project/.env`**, или экспортируйте переменную в терминале перед командой.
+**Если `DATABASE_URL is not set`:** убедитесь, что в **`project/.env`** задан **`DATABASE_URL`** (его подхватывают и Prisma CLI, и **`prisma-client`** при сидировании). При необходимости можно дублировать переменную в **`libs/shared/blog/models/.env`** или экспортировать её в терминале.
 
 **Повторный `db:seed`** может упасть из‑за дубликатов постов. Очистка по правилам Prisma: **`npx nx run blog:db:reset`** (осторожно: сотрёт данные), затем при необходимости снова **`blog:db:seed`**.
 
