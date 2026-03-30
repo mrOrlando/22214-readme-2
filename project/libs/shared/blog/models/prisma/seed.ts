@@ -73,7 +73,7 @@ async function seedDb(prismaClient: PrismaClient) {
         id: post.id,
         title: post.title,
         description: post.description,
-        content: post.description,
+        content: post.content,
         categories: post.categories,
         userId: post.userId,
         comments: post.comments
