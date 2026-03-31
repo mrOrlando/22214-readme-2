@@ -61,7 +61,12 @@ export class BlogCategoryRepository extends BasePostgresRepository<
       },
     });
 
-    return this.createEntityFromDocument(updatedCategory);
+    const updatedEntity = this.createEntityFromDocument(updatedCategory);
+    if (!updatedEntity) {
+      throw new NotFoundException(`Category with id ${id} not found.`);
+    }
+
+    return updatedEntity;
   }
 
   override async deleteById(id: string): Promise<void> {

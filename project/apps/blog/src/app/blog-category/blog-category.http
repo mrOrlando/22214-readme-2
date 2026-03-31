@@ -1,0 +1,40 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Get categories
+GET http://{{host}}/api/categories HTTP/1.1
+
+###
+
+# Get category by id
+@categoryId=efd775e2-df55-4e0e-a308-58249f5ea202
+
+GET http://{{host}}/api/categories/{{categoryId}} HTTP/1.1
+
+###
+
+# Create category
+# @name createCategory
+POST http://{{host}}/api/categories HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "New category"
+}
+
+###
+
+# Delete category by id
+
+DELETE http://{{host}}/api/categories/{{createCategory.response.body.id}} HTTP/1.1
+
+###
+
+# Update category by id
+PATCH http://{{host}}/api/categories/{{createCategory.response.body.id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Updated category"
+}
