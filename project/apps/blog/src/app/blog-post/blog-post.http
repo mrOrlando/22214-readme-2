@@ -1,0 +1,14 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Get posts
+GET http://{{host}}/api/posts HTTP/1.1
+
+###
+
+# Get post by id
+@postId=ab04593b-da99-4fe3-8b4b-e06d82e2efdd
+
+GET http://{{host}}/api/posts/{{postId}} HTTP/1.1
+
