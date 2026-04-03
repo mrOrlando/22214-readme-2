@@ -22,6 +22,12 @@ export class BlogCategoryService {
     return this.blogCategoryRepository.find();
   }
 
+  public async getCategoriesByIds(
+    categoryIds: string[]
+  ): Promise<BlogCategoryEntity[]> {
+    return this.blogCategoryRepository.findByIds(categoryIds);
+  }
+
   public async createCategory(
     dto: CreateCategoryDto
   ): Promise<BlogCategoryEntity> {

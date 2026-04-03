@@ -5,12 +5,16 @@ import {
 } from '@nestjs/common';
 import { BlogPostRepository } from './blog-post.repository';
 import { BlogPostEntity } from './blog-post.entity';
-// import { CreatePostDto } from './dto/create-post.dto';
+import { CreatePostDto } from './dto/create-post.dto';
+import { BlogCategoryService } from '../blog-category/blog-category.service';
 // import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class BlogPostService {
-  constructor(private readonly blogPostRepository: BlogPostRepository) {}
+  constructor(
+    private readonly blogPostRepository: BlogPostRepository,
+    private readonly blogCategoryService: BlogCategoryService
+  ) {}
 
   public async getPost(id: string): Promise<BlogPostEntity | null> {
     return this.blogPostRepository.findById(id);
@@ -18,5 +22,15 @@ export class BlogPostService {
 
   public async getAllPosts(): Promise<BlogPostEntity[]> {
     return this.blogPostRepository.find();
+  }
+
+  public async createPost(dto: CreatePostDto): Promise<BlogPostEntity> {
+    const categories = await this.blogCategoryService.getCategoriesByIds(
+      dto.categories
+    );
+    const newPost = BlogPostEntity.fromDto(dto, categories);
+    await this.blogPostRepository.save(newPost);
+
+    return newPost;
   }
 }

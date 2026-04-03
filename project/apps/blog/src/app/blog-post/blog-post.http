@@ -12,3 +12,16 @@ GET http://{{host}}/api/posts HTTP/1.1
 
 GET http://{{host}}/api/posts/{{postId}} HTTP/1.1
 
+###
+
+# Create post
+POST http://{{host}}/api/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "Solaris",
+  "description": "A science fiction novel by Stanisław Lem",
+  "content": "Recently finished reading 'Solaris'—a thought-provoking exploration of human consciousness and alien intelligence.",
+  "userId": "698311a6bbbec34a578e15f9",
+  "categories": ["39614113-7ad5-45b6-8093-06455437e1e2"]
+}

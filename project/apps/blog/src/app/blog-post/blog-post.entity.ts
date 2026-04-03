@@ -1,5 +1,7 @@
-import { Category, Comment, Post } from '@project/types';
+import { Comment, Post } from '@project/types';
 import { Entity } from '@project/helpers';
+import { BlogCategoryEntity } from '../blog-category/blog-category.entity';
+import { CreatePostDto } from './dto';
 
 export class BlogPostEntity implements Post, Entity<string, Post> {
   public id?: string;
@@ -9,34 +11,10 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   public createdAt?: Date;
   public updatedAt?: Date;
   public userId!: string;
-  public categories!: Category[];
+  public categories!: BlogCategoryEntity[];
   public comments!: Comment[];
 
-  constructor(data: Post) {
-    if (!data.title) {
-      throw new Error('Post title is required');
-    }
-
-    if (!data.description) {
-      throw new Error('Post description is required');
-    }
-
-    if (!data.userId) {
-      throw new Error('Post userId is required');
-    }
-
-    if (!data.categories) {
-      throw new Error('Post categories are required');
-    }
-
-    if (!data.comments) {
-      throw new Error('Post comments are required');
-    }
-
-    this.populate(data);
-  }
-
-  public populate(data: Post): void {
+  public populate(data: Post): BlogPostEntity {
     this.id = data.id ?? undefined;
     this.title = data.title;
     this.description = data.description;
@@ -44,8 +22,12 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     this.updatedAt = data.updatedAt ?? undefined;
     this.createdAt = data.createdAt ?? undefined;
     this.userId = data.userId;
-    this.categories = data.categories;
+    this.categories = data.categories.map((category) =>
+      BlogCategoryEntity.fromObject(category)
+    );
     this.comments = data.comments;
+
+    return this;
   }
 
   public toPOJO(): Post {
@@ -55,7 +37,9 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
       description: this.description,
       content: this.content,
       userId: this.userId,
-      categories: this.categories,
+      categories: this.categories.map((categoryEntity) =>
+        categoryEntity.toPOJO()
+      ),
       comments: this.comments,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -63,6 +47,21 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   }
 
   public static fromObject(data: Post): BlogPostEntity {
-    return new BlogPostEntity(data);
+    return new BlogPostEntity().populate(data);
+  }
+
+  public static fromDto(
+    dto: CreatePostDto,
+    categories: BlogCategoryEntity[]
+  ): BlogPostEntity {
+    const post = new BlogPostEntity();
+    post.title = dto.title;
+    post.description = dto.description;
+    post.content = dto.content;
+    post.userId = dto.userId;
+    post.categories = categories;
+    post.comments = [];
+
+    return post;
   }
 }

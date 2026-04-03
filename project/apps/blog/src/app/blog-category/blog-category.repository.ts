@@ -30,6 +30,20 @@ export class BlogCategoryRepository extends BasePostgresRepository<
     return this.createEntityFromDocument(category);
   }
 
+  public async findByIds(ids: string[]): Promise<BlogCategoryEntity[]> {
+    const categories = await this.client.category.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    return categories
+      .map((category) => this.createEntityFromDocument(category))
+      .filter((category): category is BlogCategoryEntity => category !== null);
+  }
+
   public async find(filter?: CategoryFilter): Promise<BlogCategoryEntity[]> {
     const categories = await this.client.category.findMany({
       where: categoryFilterToPrismaFilter(filter),
