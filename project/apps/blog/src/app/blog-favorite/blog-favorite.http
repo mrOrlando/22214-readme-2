@@ -1,0 +1,33 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Get favorites
+GET http://{{host}}/api/favorites HTTP/1.1
+
+###
+
+# Get favorites of a user
+GET http://{{host}}/api/favorites?userId=658170cbb954e9f5b905ccf4 HTTP/1.1
+
+###
+
+# Add post to favorites
+# @name createFavorite
+POST http://{{host}}/api/favorites HTTP/1.1
+Content-Type: application/json
+
+{
+  "userId": "658170cbb954e9f5b905ccf4",
+  "postId": "6d308040-96a2-4162-bea6-2338e9976540"
+}
+
+###
+
+# Get favorite by id
+GET http://{{host}}/api/favorites/{{createFavorite.response.body.id}} HTTP/1.1
+
+###
+
+# Remove post from favorites
+DELETE http://{{host}}/api/favorites/{{createFavorite.response.body.id}} HTTP/1.1
