@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PostType } from '@project/types';
+import { PostStatus, PostType } from '@project/types';
 import { PostContentDto } from './post-content.dto';
 
 export class CreatePostDto extends PostContentDto {
@@ -9,6 +9,14 @@ export class CreatePostDto extends PostContentDto {
     example: PostType.Text,
   })
   public type!: PostType;
+
+  @ApiProperty({
+    description: 'Post status. A new post is published by default',
+    enum: Object.values(PostStatus),
+    example: PostStatus.Published,
+    required: false,
+  })
+  public status?: PostStatus;
 
   @ApiProperty({
     description: 'Post userId',

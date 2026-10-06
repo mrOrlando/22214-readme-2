@@ -1,6 +1,7 @@
 import { Tag } from './tag.interface';
 import { Comment } from './comment.interface';
 import { PostType } from './post-type.enum';
+import { PostStatus } from './post-status.enum';
 
 export interface PostContent {
   title?: string | null;
@@ -17,6 +18,8 @@ export interface PostContent {
 export interface Post extends PostContent {
   id?: string;
   type: PostType;
+  status?: PostStatus;
+  publishedAt?: Date;
   tags: Tag[];
   createdAt?: Date;
   updatedAt?: Date;

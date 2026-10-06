@@ -48,6 +48,8 @@ export class BlogPostRepository extends BasePostgresRepository<
     const newPost = await this.client.post.create({
       data: {
         type: entity.type,
+        status: entity.status,
+        publishedAt: entity.publishedAt,
         ...entity.getContent(),
         userId: entity.userId,
         tags: {
@@ -70,6 +72,8 @@ export class BlogPostRepository extends BasePostgresRepository<
     const updatedPost = await this.client.post.update({
       where: { id },
       data: {
+        status: entity.status,
+        publishedAt: entity.publishedAt,
         ...entity.getContent(),
         tags: {
           set: entity.tags.map((tag) => ({ id: tag.id })),

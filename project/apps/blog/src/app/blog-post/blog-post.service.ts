@@ -50,6 +50,10 @@ export class BlogPostService {
       );
     }
 
+    existingPost.status = dto.status ?? existingPost.status;
+    existingPost.publishedAt = dto.publishedAt
+      ? new Date(dto.publishedAt)
+      : existingPost.publishedAt;
     existingPost.populateContent({
       title: dto.title ?? existingPost.title,
       videoUrl: dto.videoUrl ?? existingPost.videoUrl,

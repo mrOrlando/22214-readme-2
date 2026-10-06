@@ -22,28 +22,36 @@ enum PostType {
   link
 }
 
+enum PostStatus {
+  published
+  draft
+}
+
 model Post {
-  id              String    @id @default(uuid())
+  id              String     @id @default(uuid())
   type            PostType
+  status          PostStatus @default(published)
   tags            Tag[]
   title           String?
-  videoUrl        String?   @map("video_url")
+  videoUrl        String?    @map("video_url")
   announcement    String?
   text            String?
-  quoteText       String?   @map("quote_text")
-  quoteAuthor     String?   @map("quote_author")
+  quoteText       String?    @map("quote_text")
+  quoteAuthor     String?    @map("quote_author")
   photo           String?
-  linkUrl         String?   @map("link_url")
-  linkDescription String?   @map("link_description")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  userId          String    @map("user_id")
+  linkUrl         String?    @map("link_url")
+  linkDescription String?    @map("link_description")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  publishedAt     DateTime   @default(now()) @map("published_at")
+  userId          String     @map("user_id")
   comments        Comment[]
   likes           Like[]
 
   @@index([title])
   @@index([type])
   @@index([userId])
+  @@index([publishedAt])
   @@map("posts")
 }
 

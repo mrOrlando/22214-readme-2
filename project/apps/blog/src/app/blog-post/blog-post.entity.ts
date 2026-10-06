@@ -1,4 +1,10 @@
-import { Comment, Post, PostContent, PostType } from '@project/types';
+import {
+  Comment,
+  Post,
+  PostContent,
+  PostStatus,
+  PostType,
+} from '@project/types';
 import { Entity } from '@project/helpers';
 import { BlogTagEntity } from '../blog-tag/blog-tag.entity';
 import { CreatePostDto } from './dto';
@@ -6,6 +12,8 @@ import { CreatePostDto } from './dto';
 export class BlogPostEntity implements Post, Entity<string, Post> {
   public id?: string;
   public type!: PostType;
+  public status?: PostStatus;
+  public publishedAt?: Date;
   public title?: string | null;
   public videoUrl?: string | null;
   public announcement?: string | null;
@@ -24,6 +32,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   public populate(data: Post): BlogPostEntity {
     this.id = data.id ?? undefined;
     this.type = data.type;
+    this.status = data.status ?? undefined;
+    this.publishedAt = data.publishedAt ?? undefined;
     this.populateContent(data);
     this.updatedAt = data.updatedAt ?? undefined;
     this.createdAt = data.createdAt ?? undefined;
@@ -66,6 +76,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     return {
       id: this.id,
       type: this.type,
+      status: this.status,
+      publishedAt: this.publishedAt,
       ...this.getContent(),
       userId: this.userId,
       tags: this.tags.map((tagEntity) => tagEntity.toPOJO()),
@@ -85,6 +97,7 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   ): BlogPostEntity {
     const post = new BlogPostEntity();
     post.type = dto.type;
+    post.status = dto.status;
     post.populateContent(dto);
     post.userId = dto.userId;
     post.tags = tags;
