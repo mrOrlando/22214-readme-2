@@ -45,36 +45,13 @@ export class BlogPostRepository extends BasePostgresRepository<
   }
 
   override async save(entity: BlogPostEntity): Promise<BlogPostEntity> {
-    const pojoEntity = entity.toPOJO();
     const newPost = await this.client.post.create({
       data: {
-        ...pojoEntity,
+        type: entity.type,
+        ...entity.getContent(),
+        userId: entity.userId,
         tags: {
-          connect: pojoEntity.tags.map(({ id }) => ({ id })),
-        },
-        comments: {
-          connect: [],
-        },
-      },
-    });
-
-    entity.id = newPost.id;
-    return entity;
-  }
-
-  override async update(
-    id: string,
-    entity: BlogPostEntity
-  ): Promise<BlogPostEntity> {
-    const pojoEntity = entity.toPOJO();
-    const updatedPost = await this.client.post.update({
-      where: { id },
-      data: {
-        title: pojoEntity.title,
-        description: pojoEntity.description,
-        content: pojoEntity.content,
-        tags: {
-          set: pojoEntity.tags.map((tag) => ({ id: tag.id })),
+          connect: entity.tags.map((tag) => ({ id: tag.id })),
         },
       },
       include: {
@@ -83,12 +60,28 @@ export class BlogPostRepository extends BasePostgresRepository<
       },
     });
 
-    const updatedEntity = this.createEntityFromDocument(updatedPost);
-    if (!updatedEntity) {
-      throw new NotFoundException(`Post with id ${id} not found.`);
-    }
+    return entity.populate(newPost);
+  }
 
-    return updatedEntity;
+  override async update(
+    id: string,
+    entity: BlogPostEntity
+  ): Promise<BlogPostEntity> {
+    const updatedPost = await this.client.post.update({
+      where: { id },
+      data: {
+        ...entity.getContent(),
+        tags: {
+          set: entity.tags.map((tag) => ({ id: tag.id })),
+        },
+      },
+      include: {
+        tags: true,
+        comments: true,
+      },
+    });
+
+    return entity.populate(updatedPost);
   }
 
   override async deleteById(id: string): Promise<void> {

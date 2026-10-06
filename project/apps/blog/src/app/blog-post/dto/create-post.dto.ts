@@ -1,34 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PostType } from '@project/types';
+import { PostContentDto } from './post-content.dto';
 
-export class CreatePostDto {
+export class CreatePostDto extends PostContentDto {
   @ApiProperty({
-    description: 'Post title',
-    example: 'Thinner',
+    description: 'Post type',
+    enum: Object.values(PostType),
+    example: PostType.Text,
   })
-  public title!: string;
-
-  @ApiProperty({
-    description: 'Post description',
-    example: 'A horror novel by Stephen King',
-  })
-  public description!: string;
-
-  @ApiProperty({
-    description: 'Post content',
-    example: 'I recently read the horror novel "Thinner".',
-  })
-  public content!: string;
+  public type!: PostType;
 
   @ApiProperty({
     description: 'Post userId',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '658170cbb954e9f5b905ccf4',
   })
   public userId!: string;
-
-  @ApiProperty({
-    description: 'Post tags (titles)',
-    example: ['horror', 'books'],
-    required: false,
-  })
-  public tags?: string[];
 }

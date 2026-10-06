@@ -14,19 +14,36 @@ datasource db {
   provider = "postgresql"
 }
 
+enum PostType {
+  video
+  text
+  quote
+  photo
+  link
+}
+
 model Post {
-  id          String     @id @default(uuid())
-  tags        Tag[]
-  title       String
-  description String
-  content     String
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  userId      String     @map("user_id")
-  comments    Comment[]
-  likes       Like[]
+  id              String    @id @default(uuid())
+  type            PostType
+  tags            Tag[]
+  title           String?
+  videoUrl        String?   @map("video_url")
+  announcement    String?
+  text            String?
+  quoteText       String?   @map("quote_text")
+  quoteAuthor     String?   @map("quote_author")
+  photo           String?
+  linkUrl         String?   @map("link_url")
+  linkDescription String?   @map("link_description")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  userId          String    @map("user_id")
+  comments        Comment[]
+  likes           Like[]
 
   @@index([title])
+  @@index([type])
+  @@index([userId])
   @@map("posts")
 }
 

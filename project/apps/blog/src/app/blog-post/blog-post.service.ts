@@ -23,9 +23,8 @@ export class BlogPostService {
   public async createPost(dto: CreatePostDto): Promise<BlogPostEntity> {
     const tags = await this.blogTagService.getOrCreateTagsByTitles(dto.tags);
     const newPost = BlogPostEntity.fromDto(dto, tags);
-    await this.blogPostRepository.save(newPost);
 
-    return newPost;
+    return this.blogPostRepository.save(newPost);
   }
 
   public async deletePost(id: string): Promise<void> {
@@ -51,9 +50,17 @@ export class BlogPostService {
       );
     }
 
-    existingPost.title = dto.title ?? existingPost.title;
-    existingPost.description = dto.description ?? existingPost.description;
-    existingPost.content = dto.content ?? existingPost.content;
+    existingPost.populateContent({
+      title: dto.title ?? existingPost.title,
+      videoUrl: dto.videoUrl ?? existingPost.videoUrl,
+      announcement: dto.announcement ?? existingPost.announcement,
+      text: dto.text ?? existingPost.text,
+      quoteText: dto.quoteText ?? existingPost.quoteText,
+      quoteAuthor: dto.quoteAuthor ?? existingPost.quoteAuthor,
+      photo: dto.photo ?? existingPost.photo,
+      linkUrl: dto.linkUrl ?? existingPost.linkUrl,
+      linkDescription: dto.linkDescription ?? existingPost.linkDescription,
+    });
 
     return this.blogPostRepository.update(id, existingPost);
   }

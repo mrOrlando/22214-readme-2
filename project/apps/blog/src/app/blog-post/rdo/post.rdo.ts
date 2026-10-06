@@ -1,4 +1,4 @@
-import { Tag, Comment } from '@project/types';
+import { Comment, PostType, Tag } from '@project/types';
 import { Expose } from 'class-transformer';
 
 export class PostRdo {
@@ -6,16 +6,40 @@ export class PostRdo {
   public id!: string;
 
   @Expose()
-  public title!: string;
+  public type!: PostType;
 
   @Expose()
-  public description!: string;
+  public title!: string | null;
 
   @Expose()
-  public content!: string;
+  public videoUrl!: string | null;
+
+  @Expose()
+  public announcement!: string | null;
+
+  @Expose()
+  public text!: string | null;
+
+  @Expose()
+  public quoteText!: string | null;
+
+  @Expose()
+  public quoteAuthor!: string | null;
+
+  @Expose()
+  public photo!: string | null;
+
+  @Expose()
+  public linkUrl!: string | null;
+
+  @Expose()
+  public linkDescription!: string | null;
 
   @Expose()
   public userId!: string;
+
+  @Expose()
+  public createdAt!: Date;
 
   @Expose()
   public tags!: Tag[];

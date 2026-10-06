@@ -14,17 +14,71 @@ GET http://{{host}}/api/posts/{{postId}} HTTP/1.1
 
 ###
 
-# Create post
+# Create text post
 # @name createPost
 POST http://{{host}}/api/posts HTTP/1.1
 Content-Type: application/json
 
 {
-  "title": "Solaris",
-  "description": "A science fiction novel by Stanisław Lem",
-  "content": "Recently finished reading 'Solaris'—a thought-provoking exploration of human consciousness and alien intelligence.",
-  "userId": "698311a6bbbec34a578e15f9",
+  "type": "text",
+  "title": "Solaris: a novel by Stanisław Lem",
+  "announcement": "A thought-provoking exploration of human consciousness and alien intelligence.",
+  "text": "Recently finished reading 'Solaris'. The ocean planet that reads the minds of the crew is one of the most unusual images in science fiction.",
+  "userId": "658170cbb954e9f5b905ccf4",
   "tags": ["books", "SciFi"]
+}
+
+###
+
+# Create video post
+POST http://{{host}}/api/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "video",
+  "title": "NestJS crash course for beginners",
+  "videoUrl": "https://www.youtube.com/watch?v=GHTA143_b-s",
+  "userId": "658170cbb954e9f5b905ccf4",
+  "tags": ["computers"]
+}
+
+###
+
+# Create quote post
+POST http://{{host}}/api/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "quote",
+  "quoteText": "Simplicity is prerequisite for reliability.",
+  "quoteAuthor": "Edsger Dijkstra",
+  "userId": "658170cbb954e9f5b905ccf4"
+}
+
+###
+
+# Create photo post
+POST http://{{host}}/api/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "photo",
+  "photo": "/uploads/mountains.jpg",
+  "userId": "658170cbb954e9f5b905ccf4",
+  "tags": ["travel"]
+}
+
+###
+
+# Create link post
+POST http://{{host}}/api/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "link",
+  "linkUrl": "https://docs.nestjs.com",
+  "linkDescription": "NestJS documentation",
+  "userId": "658170cbb954e9f5b905ccf4"
 }
 
 ###
@@ -34,7 +88,7 @@ PATCH http://{{host}}/api/posts/{{createPost.response.body.id}} HTTP/1.1
 Content-Type: application/json
 
 {
-  "title": "Solaris (updated)",
+  "title": "Solaris: a novel by Stanisław Lem (updated)",
   "tags": ["classic"]
 }
 
