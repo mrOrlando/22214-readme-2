@@ -68,8 +68,10 @@ async function seedDb(prismaClient: PrismaClient) {
 
   const mockPosts = getPosts();
   for (const post of mockPosts) {
-    await prismaClient.post.create({
-      data: {
+    await prismaClient.post.upsert({
+      where: { id: post.id },
+      update: {},
+      create: {
         id: post.id,
         title: post.title,
         description: post.description,
