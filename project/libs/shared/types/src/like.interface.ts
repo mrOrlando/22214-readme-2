@@ -1,4 +1,4 @@
-export interface Favorite {
+export interface Like {
   id?: string;
   createdAt?: Date;
   updatedAt?: Date;

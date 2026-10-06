@@ -1,19 +1,19 @@
 import * as Prisma from '@project/models';
 
-export interface FavoriteFilter {
+export interface LikeFilter {
   id?: string;
   postId?: string;
   userId?: string;
 }
 
-export function favoriteFilterToPrismaFilter(
-  filter?: FavoriteFilter
-): Prisma.FavoriteWhereInput | undefined {
+export function likeFilterToPrismaFilter(
+  filter?: LikeFilter
+): Prisma.LikeWhereInput | undefined {
   if (!filter) {
     return undefined;
   }
 
-  const prismaFilter: Prisma.FavoriteWhereInput = {};
+  const prismaFilter: Prisma.LikeWhereInput = {};
 
   if (filter.postId) {
     prismaFilter.postId = filter.postId;

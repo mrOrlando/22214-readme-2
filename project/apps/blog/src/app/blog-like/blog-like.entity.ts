@@ -1,26 +1,26 @@
-import { Favorite } from '@project/types';
+import { Like } from '@project/types';
 import { Entity } from '@project/helpers';
 
-export class BlogFavoriteEntity implements Favorite, Entity<string, Favorite> {
+export class BlogLikeEntity implements Like, Entity<string, Like> {
   public id?: string;
   public userId!: string;
   public postId!: string;
   public createdAt?: Date;
   public updatedAt?: Date;
 
-  constructor(data: Favorite) {
+  constructor(data: Like) {
     if (!data.userId) {
-      throw new Error('Favorite userId is required');
+      throw new Error('Like userId is required');
     }
 
     if (!data.postId) {
-      throw new Error('Favorite postId is required');
+      throw new Error('Like postId is required');
     }
 
     this.populate(data);
   }
 
-  public populate(data: Favorite): void {
+  public populate(data: Like): void {
     this.id = data.id ?? undefined;
     this.userId = data.userId;
     this.postId = data.postId;
@@ -28,7 +28,7 @@ export class BlogFavoriteEntity implements Favorite, Entity<string, Favorite> {
     this.createdAt = data.createdAt ?? undefined;
   }
 
-  public toPOJO(): Favorite {
+  public toPOJO(): Like {
     return {
       id: this.id,
       userId: this.userId,
@@ -38,7 +38,7 @@ export class BlogFavoriteEntity implements Favorite, Entity<string, Favorite> {
     };
   }
 
-  public static fromObject(data: Favorite): BlogFavoriteEntity {
-    return new BlogFavoriteEntity(data);
+  public static fromObject(data: Like): BlogLikeEntity {
+    return new BlogLikeEntity(data);
   }
 }
