@@ -61,4 +61,39 @@ export class BlogPostRepository extends BasePostgresRepository<
     entity.id = newPost.id;
     return entity;
   }
+
+  override async update(
+    id: string,
+    entity: BlogPostEntity
+  ): Promise<BlogPostEntity> {
+    const pojoEntity = entity.toPOJO();
+    const updatedPost = await this.client.post.update({
+      where: { id },
+      data: {
+        title: pojoEntity.title,
+        description: pojoEntity.description,
+        content: pojoEntity.content,
+        categories: {
+          set: pojoEntity.categories.map((category) => ({ id: category.id })),
+        },
+      },
+      include: {
+        categories: true,
+        comments: true,
+      },
+    });
+
+    const updatedEntity = this.createEntityFromDocument(updatedPost);
+    if (!updatedEntity) {
+      throw new NotFoundException(`Post with id ${id} not found.`);
+    }
+
+    return updatedEntity;
+  }
+
+  override async deleteById(id: string): Promise<void> {
+    await this.client.post.delete({
+      where: { id },
+    });
+  }
 }

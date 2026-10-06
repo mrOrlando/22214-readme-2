@@ -13,8 +13,7 @@ import { fillDto } from '@project/helpers';
 import { BlogPostService } from './blog-post.service';
 
 import { PostRdo } from './rdo';
-import { CreatePostDto } from './dto';
-// import { UpdatePostDto } from './dto/update-post.dto';
+import { CreatePostDto, UpdatePostDto } from './dto';
 
 @Controller('posts')
 export class BlogPostController {
@@ -36,5 +35,20 @@ export class BlogPostController {
   public async create(@Body() dto: CreatePostDto): Promise<PostRdo> {
     const newPost = await this.blogPostService.createPost(dto);
     return fillDto(PostRdo, newPost.toPOJO());
+  }
+
+  @Delete('/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async destroy(@Param('id') id: string): Promise<void> {
+    await this.blogPostService.deletePost(id);
+  }
+
+  @Patch('/:id')
+  public async update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePostDto
+  ): Promise<PostRdo> {
+    const updatedPost = await this.blogPostService.updatePost(id, dto);
+    return fillDto(PostRdo, updatedPost.toPOJO());
   }
 }
