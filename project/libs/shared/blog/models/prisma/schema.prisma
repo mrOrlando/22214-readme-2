@@ -45,9 +45,13 @@ model Post {
   updatedAt       DateTime   @updatedAt @map("updated_at")
   publishedAt     DateTime   @default(now()) @map("published_at")
   userId          String     @map("user_id")
+  isRepost        Boolean    @default(false) @map("is_repost")
+  originalPostId  String?    @map("original_post_id")
+  originalUserId  String?    @map("original_user_id")
   comments        Comment[]
   likes           Like[]
 
+  @@unique([userId, originalPostId])
   @@index([title])
   @@index([type])
   @@index([userId])

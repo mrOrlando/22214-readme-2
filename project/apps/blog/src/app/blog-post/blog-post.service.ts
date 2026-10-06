@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BlogPostRepository } from './blog-post.repository';
 import { BlogPostEntity } from './blog-post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { BlogTagService } from '../blog-tag/blog-tag.service';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { CreateRepostDto } from './dto/create-repost.dto';
 
 @Injectable()
 export class BlogPostService {
@@ -25,6 +30,30 @@ export class BlogPostService {
     const newPost = BlogPostEntity.fromDto(dto, tags);
 
     return this.blogPostRepository.save(newPost);
+  }
+
+  public async repostPost(
+    id: string,
+    dto: CreateRepostDto
+  ): Promise<BlogPostEntity> {
+    const originalPost = await this.blogPostRepository.findById(id);
+    if (!originalPost) {
+      throw new NotFoundException(`Post with ID "${id}" not found`);
+    }
+
+    const repost = BlogPostEntity.fromOriginal(originalPost, dto.userId);
+    const existingRepost = (
+      await this.blogPostRepository.find({
+        userId: dto.userId,
+        originalPostId: repost.originalPostId ?? undefined,
+      })
+    ).at(0);
+
+    if (existingRepost) {
+      throw new ConflictException('Post is already reposted by this user');
+    }
+
+    return this.blogPostRepository.save(repost);
   }
 
   public async deletePost(id: string): Promise<void> {

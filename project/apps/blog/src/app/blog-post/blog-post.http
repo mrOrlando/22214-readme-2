@@ -115,5 +115,15 @@ Content-Type: application/json
 
 ###
 
+# Repost post (a post can be reposted by a user only once)
+POST http://{{host}}/api/posts/{{postId}}/repost HTTP/1.1
+Content-Type: application/json
+
+{
+  "userId": "6581762309c030b503e30512"
+}
+
+###
+
 # Delete post by id
 DELETE http://{{host}}/api/posts/{{createPost.response.body.id}} HTTP/1.1

@@ -3,6 +3,8 @@ import * as Prisma from '@project/models';
 export interface PostFilter {
   id?: string;
   title?: string;
+  userId?: string;
+  originalPostId?: string;
 }
 
 export function postFilterToPrismaFilter(
@@ -12,12 +14,18 @@ export function postFilterToPrismaFilter(
     return undefined;
   }
 
-  let prismaFilter: Prisma.PostWhereInput = {};
+  const prismaFilter: Prisma.PostWhereInput = {};
 
   if (filter.title) {
-    prismaFilter = {
-      title: filter.title,
-    };
+    prismaFilter.title = filter.title;
+  }
+
+  if (filter.userId) {
+    prismaFilter.userId = filter.userId;
+  }
+
+  if (filter.originalPostId) {
+    prismaFilter.originalPostId = filter.originalPostId;
   }
 
   return prismaFilter;

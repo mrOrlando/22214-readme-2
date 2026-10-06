@@ -20,6 +20,9 @@ export interface Post extends PostContent {
   type: PostType;
   status?: PostStatus;
   publishedAt?: Date;
+  isRepost?: boolean;
+  originalPostId?: string | null;
+  originalUserId?: string | null;
   tags: Tag[];
   createdAt?: Date;
   updatedAt?: Date;

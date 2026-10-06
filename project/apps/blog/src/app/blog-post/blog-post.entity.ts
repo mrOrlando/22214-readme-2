@@ -14,6 +14,9 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   public type!: PostType;
   public status?: PostStatus;
   public publishedAt?: Date;
+  public isRepost = false;
+  public originalPostId?: string | null;
+  public originalUserId?: string | null;
   public title?: string | null;
   public videoUrl?: string | null;
   public announcement?: string | null;
@@ -34,6 +37,9 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     this.type = data.type;
     this.status = data.status ?? undefined;
     this.publishedAt = data.publishedAt ?? undefined;
+    this.isRepost = data.isRepost ?? false;
+    this.originalPostId = data.originalPostId ?? null;
+    this.originalUserId = data.originalUserId ?? null;
     this.populateContent(data);
     this.updatedAt = data.updatedAt ?? undefined;
     this.createdAt = data.createdAt ?? undefined;
@@ -78,6 +84,9 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
       type: this.type,
       status: this.status,
       publishedAt: this.publishedAt,
+      isRepost: this.isRepost,
+      originalPostId: this.originalPostId ?? null,
+      originalUserId: this.originalUserId ?? null,
       ...this.getContent(),
       userId: this.userId,
       tags: this.tags.map((tagEntity) => tagEntity.toPOJO()),
@@ -104,5 +113,22 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     post.comments = [];
 
     return post;
+  }
+
+  public static fromOriginal(
+    original: BlogPostEntity,
+    userId: string
+  ): BlogPostEntity {
+    const repost = new BlogPostEntity();
+    repost.type = original.type;
+    repost.populateContent(original);
+    repost.userId = userId;
+    repost.isRepost = true;
+    repost.originalPostId = original.originalPostId ?? original.id;
+    repost.originalUserId = original.originalUserId ?? original.userId;
+    repost.tags = original.tags;
+    repost.comments = [];
+
+    return repost;
   }
 }

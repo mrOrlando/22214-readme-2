@@ -42,6 +42,15 @@ export class PostRdo {
   public userId!: string;
 
   @Expose()
+  public isRepost!: boolean;
+
+  @Expose()
+  public originalPostId!: string | null;
+
+  @Expose()
+  public originalUserId!: string | null;
+
+  @Expose()
   public createdAt!: Date;
 
   @Expose()

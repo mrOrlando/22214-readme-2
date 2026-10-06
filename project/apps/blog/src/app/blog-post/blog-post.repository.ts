@@ -52,6 +52,9 @@ export class BlogPostRepository extends BasePostgresRepository<
         publishedAt: entity.publishedAt,
         ...entity.getContent(),
         userId: entity.userId,
+        isRepost: entity.isRepost,
+        originalPostId: entity.originalPostId,
+        originalUserId: entity.originalUserId,
         tags: {
           connect: entity.tags.map((tag) => ({ id: tag.id })),
         },
