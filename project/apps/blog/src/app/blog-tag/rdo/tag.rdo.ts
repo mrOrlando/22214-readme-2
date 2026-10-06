@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-export class CategoryRdo {
+export class TagRdo {
   @Expose()
   public id!: string;
 

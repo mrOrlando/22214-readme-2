@@ -23,9 +23,9 @@ export class UpdatePostDto {
   public content?: string;
 
   @ApiProperty({
-    description: 'Post categories',
-    example: ['39614113-7ad5-45b6-8093-06455437e1e2'],
+    description: 'Post tags (titles)',
+    example: ['horror', 'books'],
     required: false,
   })
-  public categories?: string[];
+  public tags?: string[];
 }

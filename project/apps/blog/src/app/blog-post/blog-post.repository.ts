@@ -18,7 +18,7 @@ export class BlogPostRepository extends BasePostgresRepository<
     const post = await this.client.post.findUnique({
       where: { id },
       include: {
-        categories: true,
+        tags: true,
         comments: true,
       },
     });
@@ -34,7 +34,7 @@ export class BlogPostRepository extends BasePostgresRepository<
     const posts = await this.client.post.findMany({
       where: postFilterToPrismaFilter(filter),
       include: {
-        categories: true,
+        tags: true,
         comments: true,
       },
     });
@@ -49,8 +49,8 @@ export class BlogPostRepository extends BasePostgresRepository<
     const newPost = await this.client.post.create({
       data: {
         ...pojoEntity,
-        categories: {
-          connect: pojoEntity.categories.map(({ id }) => ({ id })),
+        tags: {
+          connect: pojoEntity.tags.map(({ id }) => ({ id })),
         },
         comments: {
           connect: [],
@@ -73,12 +73,12 @@ export class BlogPostRepository extends BasePostgresRepository<
         title: pojoEntity.title,
         description: pojoEntity.description,
         content: pojoEntity.content,
-        categories: {
-          set: pojoEntity.categories.map((category) => ({ id: category.id })),
+        tags: {
+          set: pojoEntity.tags.map((tag) => ({ id: tag.id })),
         },
       },
       include: {
-        categories: true,
+        tags: true,
         comments: true,
       },
     });

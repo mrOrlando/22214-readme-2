@@ -1,6 +1,6 @@
 import { Comment, Post } from '@project/types';
 import { Entity } from '@project/helpers';
-import { BlogCategoryEntity } from '../blog-category/blog-category.entity';
+import { BlogTagEntity } from '../blog-tag/blog-tag.entity';
 import { CreatePostDto } from './dto';
 
 export class BlogPostEntity implements Post, Entity<string, Post> {
@@ -11,7 +11,7 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   public createdAt?: Date;
   public updatedAt?: Date;
   public userId!: string;
-  public categories!: BlogCategoryEntity[];
+  public tags!: BlogTagEntity[];
   public comments!: Comment[];
 
   public populate(data: Post): BlogPostEntity {
@@ -22,9 +22,7 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     this.updatedAt = data.updatedAt ?? undefined;
     this.createdAt = data.createdAt ?? undefined;
     this.userId = data.userId;
-    this.categories = data.categories.map((category) =>
-      BlogCategoryEntity.fromObject(category)
-    );
+    this.tags = data.tags.map((tag) => BlogTagEntity.fromObject(tag));
     this.comments = data.comments;
 
     return this;
@@ -37,9 +35,7 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
       description: this.description,
       content: this.content,
       userId: this.userId,
-      categories: this.categories.map((categoryEntity) =>
-        categoryEntity.toPOJO()
-      ),
+      tags: this.tags.map((tagEntity) => tagEntity.toPOJO()),
       comments: this.comments,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -52,14 +48,14 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
 
   public static fromDto(
     dto: CreatePostDto,
-    categories: BlogCategoryEntity[]
+    tags: BlogTagEntity[]
   ): BlogPostEntity {
     const post = new BlogPostEntity();
     post.title = dto.title;
     post.description = dto.description;
     post.content = dto.content;
     post.userId = dto.userId;
-    post.categories = categories;
+    post.tags = tags;
     post.comments = [];
 
     return post;

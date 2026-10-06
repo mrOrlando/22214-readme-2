@@ -1,18 +1,18 @@
 import * as Prisma from '@project/models';
 
-export interface CategoryFilter {
+export interface TagFilter {
   id?: string;
   title?: string;
 }
 
-export function categoryFilterToPrismaFilter(
-  filter?: CategoryFilter
-): Prisma.CategoryWhereInput | undefined {
+export function tagFilterToPrismaFilter(
+  filter?: TagFilter
+): Prisma.TagWhereInput | undefined {
   if (!filter) {
     return undefined;
   }
 
-  let prismaFilter: Prisma.CategoryWhereInput = {};
+  let prismaFilter: Prisma.TagWhereInput = {};
 
   if (filter.title) {
     prismaFilter = {

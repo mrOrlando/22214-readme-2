@@ -1,4 +1,4 @@
-import { Category, Comment } from '@project/types';
+import { Tag, Comment } from '@project/types';
 import { Expose } from 'class-transformer';
 
 export class PostRdo {
@@ -18,7 +18,7 @@ export class PostRdo {
   public userId!: string;
 
   @Expose()
-  public categories!: Category[];
+  public tags!: Tag[];
 
   @Expose()
   public comments!: Comment[];

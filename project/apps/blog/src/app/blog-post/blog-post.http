@@ -24,7 +24,7 @@ Content-Type: application/json
   "description": "A science fiction novel by Stanisław Lem",
   "content": "Recently finished reading 'Solaris'—a thought-provoking exploration of human consciousness and alien intelligence.",
   "userId": "698311a6bbbec34a578e15f9",
-  "categories": ["39614113-7ad5-45b6-8093-06455437e1e2"]
+  "tags": ["books", "SciFi"]
 }
 
 ###
@@ -35,7 +35,7 @@ Content-Type: application/json
 
 {
   "title": "Solaris (updated)",
-  "categories": ["efd775e2-df55-4e0e-a308-58249f5ea202"]
+  "tags": ["classic"]
 }
 
 ###

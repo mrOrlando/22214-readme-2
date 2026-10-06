@@ -16,7 +16,7 @@ datasource db {
 
 model Post {
   id          String     @id @default(uuid())
-  categories  Category[]
+  tags        Tag[]
   title       String
   description String
   content     String
@@ -30,15 +30,14 @@ model Post {
   @@map("posts")
 }
 
-model Category {
+model Tag {
   id        String   @id @default(uuid())
-  title     String
+  title     String   @unique
   posts     Post[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([title])
-  @@map("categories")
+  @@map("tags")
 }
 
 model Comment {

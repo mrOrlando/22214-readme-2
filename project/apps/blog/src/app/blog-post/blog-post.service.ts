@@ -2,14 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BlogPostRepository } from './blog-post.repository';
 import { BlogPostEntity } from './blog-post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
-import { BlogCategoryService } from '../blog-category/blog-category.service';
+import { BlogTagService } from '../blog-tag/blog-tag.service';
 import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class BlogPostService {
   constructor(
     private readonly blogPostRepository: BlogPostRepository,
-    private readonly blogCategoryService: BlogCategoryService
+    private readonly blogTagService: BlogTagService
   ) {}
 
   public async getPost(id: string): Promise<BlogPostEntity | null> {
@@ -21,10 +21,8 @@ export class BlogPostService {
   }
 
   public async createPost(dto: CreatePostDto): Promise<BlogPostEntity> {
-    const categories = await this.blogCategoryService.getCategoriesByIds(
-      dto.categories
-    );
-    const newPost = BlogPostEntity.fromDto(dto, categories);
+    const tags = await this.blogTagService.getOrCreateTagsByTitles(dto.tags);
+    const newPost = BlogPostEntity.fromDto(dto, tags);
     await this.blogPostRepository.save(newPost);
 
     return newPost;
@@ -47,9 +45,10 @@ export class BlogPostService {
       throw new NotFoundException(`Post with ID "${id}" not found`);
     }
 
-    if (dto.categories) {
-      existingPost.categories =
-        await this.blogCategoryService.getCategoriesByIds(dto.categories);
+    if (dto.tags) {
+      existingPost.tags = await this.blogTagService.getOrCreateTagsByTitles(
+        dto.tags
+      );
     }
 
     existingPost.title = dto.title ?? existingPost.title;

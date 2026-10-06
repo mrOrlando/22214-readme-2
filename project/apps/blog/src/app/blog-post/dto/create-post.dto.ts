@@ -26,8 +26,9 @@ export class CreatePostDto {
   public userId!: string;
 
   @ApiProperty({
-    description: 'Post categories',
-    example: ['horror'],
+    description: 'Post tags (titles)',
+    example: ['horror', 'books'],
+    required: false,
   })
-  public categories!: string[];
+  public tags?: string[];
 }

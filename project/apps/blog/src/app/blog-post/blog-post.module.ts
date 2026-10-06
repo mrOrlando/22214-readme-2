@@ -3,10 +3,10 @@ import { Module } from '@nestjs/common';
 import { BlogPostRepository } from './blog-post.repository';
 import { BlogPostService } from './blog-post.service';
 import { BlogPostController } from './blog-post.controller';
-import { BlogCategoryModule } from '../blog-category/blog-category.module';
+import { BlogTagModule } from '../blog-tag/blog-tag.module';
 
 @Module({
-  imports: [PrismaClientModule, BlogCategoryModule],
+  imports: [PrismaClientModule, BlogTagModule],
   providers: [BlogPostRepository, BlogPostService],
   controllers: [BlogPostController],
 })

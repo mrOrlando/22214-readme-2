@@ -1,10 +1,10 @@
-import { Category } from './category.interface';
+import { Tag } from './tag.interface';
 import { Comment } from './comment.interface';
 
 export interface Post {
   id?: string;
   title: string;
-  categories: Category[];
+  tags: Tag[];
   description: string;
   content: string;
   createdAt?: Date;
