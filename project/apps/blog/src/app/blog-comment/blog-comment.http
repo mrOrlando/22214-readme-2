@@ -1,0 +1,42 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Get comments
+GET http://{{host}}/api/comments HTTP/1.1
+
+###
+
+# Get comment by id
+@commentId=6cf68e65-742a-4934-90c3-9415f4202745
+
+GET http://{{host}}/api/comments/{{commentId}} HTTP/1.1
+
+###
+
+# Create comment
+# @name createComment
+POST http://{{host}}/api/comments HTTP/1.1
+Content-Type: application/json
+
+{
+  "message": "New comment",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "postId": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+###
+
+# Delete comment by id
+
+DELETE http://{{host}}/api/comments/{{createComment.response.body.id}} HTTP/1.1
+
+###
+
+# Update comment by id
+PATCH http://{{host}}/api/comments/{{createComment.response.body.id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "message": "Updated comment"
+}

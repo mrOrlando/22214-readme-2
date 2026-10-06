@@ -1,0 +1,41 @@
+name: readme-blog
+
+services:
+  readme.blog.postgres:
+    image: postgres:14-alpine
+    container_name: readme.blog.postgres
+    env_file:
+      - blog.env
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - readme.blog
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  readme.blog.pgadmin:
+    image: dpage/pgadmin4
+    container_name: readme.blog.pgadmin
+    ports:
+      - 8082:80
+    env_file:
+      - blog.env
+    environment:
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    depends_on:
+      - readme.blog.postgres
+    networks:
+      - readme.blog
+
+volumes:
+  postgres:
+
+networks:
+  readme.blog:
+    driver: bridge

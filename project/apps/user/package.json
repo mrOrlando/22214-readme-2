@@ -39,6 +39,13 @@
             "buildTarget": "@project/user:build:production"
           }
         }
+      },
+      "db:seed": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/user",
+          "command": "npx tsx src/seed/seed.ts"
+        }
       }
     }
   }

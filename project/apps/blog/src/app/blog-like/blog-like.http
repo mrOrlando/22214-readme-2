@@ -1,0 +1,33 @@
+@hostname=localhost
+@port=3000
+@host={{hostname}}:{{port}}
+
+# Get likes
+GET http://{{host}}/api/likes HTTP/1.1
+
+###
+
+# Get likes of a user
+GET http://{{host}}/api/likes?userId=658170cbb954e9f5b905ccf4 HTTP/1.1
+
+###
+
+# Like post
+# @name createLike
+POST http://{{host}}/api/likes HTTP/1.1
+Content-Type: application/json
+
+{
+  "userId": "658170cbb954e9f5b905ccf4",
+  "postId": "6d308040-96a2-4162-bea6-2338e9976540"
+}
+
+###
+
+# Get like by id
+GET http://{{host}}/api/likes/{{createLike.response.body.id}} HTTP/1.1
+
+###
+
+# Remove like
+DELETE http://{{host}}/api/likes/{{createLike.response.body.id}} HTTP/1.1
