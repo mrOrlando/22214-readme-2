@@ -7,7 +7,13 @@ export class PrismaClientService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
-    super({ adapter });
+    super({
+      adapter,
+      log:
+        process.env.NODE_ENV === 'production'
+          ? ['error']
+          : ['query', 'info', 'warn', 'error'],
+    });
   }
 
   async onModuleInit() {
