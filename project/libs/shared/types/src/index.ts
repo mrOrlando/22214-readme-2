@@ -7,3 +7,4 @@ export * from './post.interface';
 export * from './like.interface';
 export * from './post-type.enum';
 export * from './post-status.enum';
+export * from './pagination.interface';
