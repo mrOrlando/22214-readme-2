@@ -9,6 +9,8 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { BlogTagService } from '../blog-tag/blog-tag.service';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateRepostDto } from './dto/create-repost.dto';
+import { PaginationResult } from '@project/types';
+import { BlogPostQuery } from './query';
 
 @Injectable()
 export class BlogPostService {
@@ -21,8 +23,10 @@ export class BlogPostService {
     return this.blogPostRepository.findById(id);
   }
 
-  public async getAllPosts(): Promise<BlogPostEntity[]> {
-    return this.blogPostRepository.find();
+  public async getPosts(
+    query: BlogPostQuery
+  ): Promise<PaginationResult<BlogPostEntity>> {
+    return this.blogPostRepository.findPage(query);
   }
 
   public async createPost(dto: CreatePostDto): Promise<BlogPostEntity> {

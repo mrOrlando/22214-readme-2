@@ -1,9 +1,27 @@
+import * as Prisma from '@project/models';
 import { PrismaClientService } from '@project/models';
 import { BasePostgresRepository } from '@project/helpers';
 import { BlogPostEntity } from './blog-post.entity';
-import { Post } from '@project/types';
+import { PaginationResult, Post, PostStatus } from '@project/types';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PostFilter, postFilterToPrismaFilter } from './blog-post.filter';
+import { BlogPostQuery } from './query';
+import { PostSortType } from './blog-post.constants';
+
+const POST_ORDER_BY: Record<
+  PostSortType,
+  Prisma.PostOrderByWithRelationInput[]
+> = {
+  [PostSortType.Date]: [{ publishedAt: 'desc' }],
+  [PostSortType.Likes]: [
+    { likes: { _count: 'desc' } },
+    { publishedAt: 'desc' },
+  ],
+  [PostSortType.Comments]: [
+    { comments: { _count: 'desc' } },
+    { publishedAt: 'desc' },
+  ],
+};
 
 @Injectable()
 export class BlogPostRepository extends BasePostgresRepository<
@@ -42,6 +60,46 @@ export class BlogPostRepository extends BasePostgresRepository<
     return posts
       .map((post) => this.createEntityFromDocument(post))
       .filter((post): post is BlogPostEntity => post !== null);
+  }
+
+  public async findPage(
+    query: BlogPostQuery
+  ): Promise<PaginationResult<BlogPostEntity>> {
+    const where: Prisma.PostWhereInput = {
+      status: PostStatus.Published,
+      userId: query.userId,
+      type: query.type,
+      tags: query.tag ? { some: { title: query.tag } } : undefined,
+    };
+
+    const [posts, totalItems] = await Promise.all([
+      this.client.post.findMany({
+        where,
+        orderBy: POST_ORDER_BY[query.sortBy],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        include: {
+          tags: true,
+          comments: true,
+          _count: { select: { likes: true, comments: true } },
+        },
+      }),
+      this.client.post.count({ where }),
+    ]);
+
+    return {
+      entities: posts.map(({ _count, ...post }) =>
+        BlogPostEntity.fromObject({
+          ...post,
+          likesCount: _count.likes,
+          commentsCount: _count.comments,
+        })
+      ),
+      currentPage: query.page,
+      totalPages: Math.ceil(totalItems / query.limit),
+      itemsPerPage: query.limit,
+      totalItems,
+    };
   }
 
   override async save(entity: BlogPostEntity): Promise<BlogPostEntity> {

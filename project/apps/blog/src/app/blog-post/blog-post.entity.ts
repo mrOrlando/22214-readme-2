@@ -31,6 +31,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   public userId!: string;
   public tags!: BlogTagEntity[];
   public comments!: Comment[];
+  public likesCount = 0;
+  public commentsCount = 0;
 
   public populate(data: Post): BlogPostEntity {
     this.id = data.id ?? undefined;
@@ -46,6 +48,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     this.userId = data.userId;
     this.tags = data.tags.map((tag) => BlogTagEntity.fromObject(tag));
     this.comments = data.comments;
+    this.likesCount = data.likesCount ?? 0;
+    this.commentsCount = data.commentsCount ?? 0;
 
     return this;
   }
@@ -91,6 +95,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
       userId: this.userId,
       tags: this.tags.map((tagEntity) => tagEntity.toPOJO()),
       comments: this.comments,
+      likesCount: this.likesCount,
+      commentsCount: this.commentsCount,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

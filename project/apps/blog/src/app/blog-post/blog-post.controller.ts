@@ -8,12 +8,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { fillDto } from '@project/helpers';
 import { BlogPostService } from './blog-post.service';
 
-import { PostRdo } from './rdo';
+import { PostRdo, PostWithPaginationRdo } from './rdo';
 import { CreatePostDto, CreateRepostDto, UpdatePostDto } from './dto';
+import { BlogPostQuery } from './query';
 
 @Controller('posts')
 export class BlogPostController {
@@ -25,10 +27,15 @@ export class BlogPostController {
   }
 
   @Get('/')
-  public async index() {
-    const entities = await this.blogPostService.getAllPosts();
-    const posts = entities.map((entity) => entity.toPOJO());
-    return fillDto(PostRdo, posts);
+  public async index(
+    @Query() query: BlogPostQuery
+  ): Promise<PostWithPaginationRdo> {
+    const postsWithPagination = await this.blogPostService.getPosts(query);
+
+    return fillDto(PostWithPaginationRdo, {
+      ...postsWithPagination,
+      entities: postsWithPagination.entities.map((post) => post.toPOJO()),
+    });
   }
 
   @Post('/')

@@ -28,4 +28,6 @@ export interface Post extends PostContent {
   updatedAt?: Date;
   userId: string;
   comments: Comment[];
+  likesCount?: number;
+  commentsCount?: number;
 }

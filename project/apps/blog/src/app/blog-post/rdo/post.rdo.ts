@@ -57,6 +57,12 @@ export class PostRdo {
   public publishedAt!: Date;
 
   @Expose()
+  public likesCount!: number;
+
+  @Expose()
+  public commentsCount!: number;
+
+  @Expose()
   public tags!: Tag[];
 
   @Expose()
