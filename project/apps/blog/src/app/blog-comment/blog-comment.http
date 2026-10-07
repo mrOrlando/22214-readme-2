@@ -2,8 +2,15 @@
 @port=3000
 @host={{hostname}}:{{port}}
 
-# Get comments
-GET http://{{host}}/api/comments HTTP/1.1
+@postId=ab04593b-da99-4fe3-8b4b-e06d82e2efdd
+
+# Get comments of the post (50 per page, newest first)
+GET http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
+
+###
+
+# Get the second page, 1 comment per page
+GET http://{{host}}/api/posts/{{postId}}/comments?limit=1&page=2 HTTP/1.1
 
 ###
 

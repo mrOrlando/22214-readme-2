@@ -2,8 +2,33 @@
 @port=3000
 @host={{hostname}}:{{port}}
 
-# Get posts
+# Get published posts (25 per page, sorted by publication date)
 GET http://{{host}}/api/posts HTTP/1.1
+
+###
+
+# Get the second page, 2 posts per page
+GET http://{{host}}/api/posts?limit=2&page=2 HTTP/1.1
+
+###
+
+# Sort by likes
+GET http://{{host}}/api/posts?sortBy=likes HTTP/1.1
+
+###
+
+# Sort by comments
+GET http://{{host}}/api/posts?sortBy=comments HTTP/1.1
+
+###
+
+# Filter by author, type and tag
+GET http://{{host}}/api/posts?userId=658170cbb954e9f5b905ccf4&type=text&tag=books HTTP/1.1
+
+###
+
+# Invalid query parameters (400)
+GET http://{{host}}/api/posts?limit=100&page=0&sortBy=rating HTTP/1.1
 
 ###
 
