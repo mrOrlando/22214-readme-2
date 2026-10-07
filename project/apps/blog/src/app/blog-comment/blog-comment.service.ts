@@ -6,6 +6,8 @@ import { BlogCommentRepository } from './blog-comment.repository';
 import { BlogCommentEntity } from './blog-comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { PaginationResult } from '@project/types';
+import { BlogCommentQuery } from './query/blog-comment.query';
 
 @Injectable()
 export class BlogCommentService {
@@ -17,8 +19,11 @@ export class BlogCommentService {
     return this.blogCommentRepository.findById(id);
   }
 
-  public async getAllComments(): Promise<BlogCommentEntity[]> {
-    return this.blogCommentRepository.find();
+  public async getComments(
+    postId: string,
+    query: BlogCommentQuery
+  ): Promise<PaginationResult<BlogCommentEntity>> {
+    return this.blogCommentRepository.findByPostId(postId, query);
   }
 
   public async createComment(

@@ -1,13 +1,14 @@
 import { PrismaClientService } from '@project/models';
 import { BasePostgresRepository } from '@project/helpers';
 import { BlogCommentEntity } from './blog-comment.entity';
-import { Comment } from '@project/types';
+import { Comment, PaginationResult } from '@project/types';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CommentFilter,
   commentFilterToPrismaFilter,
 } from './blog-comment.filter';
 import { MAX_COMMENTS_LIMIT } from './blog-comment.constants';
+import { BlogCommentQuery } from './query/blog-comment.query';
 
 @Injectable()
 export class BlogCommentRepository extends BasePostgresRepository<
@@ -39,6 +40,33 @@ export class BlogCommentRepository extends BasePostgresRepository<
     return comments
       .map((comment) => this.createEntityFromDocument(comment))
       .filter((comment): comment is BlogCommentEntity => comment !== null);
+  }
+
+  public async findByPostId(
+    postId: string,
+    query: BlogCommentQuery
+  ): Promise<PaginationResult<BlogCommentEntity>> {
+    const where = { postId };
+
+    const [comments, totalItems] = await Promise.all([
+      this.client.comment.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.client.comment.count({ where }),
+    ]);
+
+    return {
+      entities: comments.map((comment) =>
+        BlogCommentEntity.fromObject(comment)
+      ),
+      currentPage: query.page,
+      totalPages: Math.ceil(totalItems / query.limit),
+      itemsPerPage: query.limit,
+      totalItems,
+    };
   }
 
   public async postExists(postId: string): Promise<boolean> {

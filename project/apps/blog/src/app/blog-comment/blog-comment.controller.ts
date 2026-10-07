@@ -8,43 +8,56 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { BlogCommentService } from './blog-comment.service';
 import { fillDto } from '@project/helpers';
 
-import { CommentRdo } from './rdo';
+import { CommentRdo, CommentWithPaginationRdo } from './rdo';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { BlogCommentQuery } from './query/blog-comment.query';
 
-@Controller('comments')
+@Controller()
 export class BlogCommentController {
   constructor(private readonly blogCommentService: BlogCommentService) {}
 
-  @Get('/:id')
+  @Get('comments/:id')
   public async show(@Param('id') id: string) {
     return this.blogCommentService.getComment(id);
   }
 
-  @Get('/')
-  public async index() {
-    const entities = await this.blogCommentService.getAllComments();
-    const comments = entities.map((entity) => entity.toPOJO());
-    return fillDto(CommentRdo, comments);
+  @Get('posts/:postId/comments')
+  public async index(
+    @Param('postId') postId: string,
+    @Query() query: BlogCommentQuery
+  ): Promise<CommentWithPaginationRdo> {
+    const commentsWithPagination = await this.blogCommentService.getComments(
+      postId,
+      query
+    );
+
+    return fillDto(CommentWithPaginationRdo, {
+      ...commentsWithPagination,
+      entities: commentsWithPagination.entities.map((comment) =>
+        comment.toPOJO()
+      ),
+    });
   }
 
-  @Post('/')
+  @Post('comments')
   public async create(@Body() dto: CreateCommentDto): Promise<CommentRdo> {
     const newComment = await this.blogCommentService.createComment(dto);
     return fillDto(CommentRdo, newComment.toPOJO());
   }
 
-  @Delete('/:id')
+  @Delete('comments/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async destroy(@Param('id') id: string): Promise<void> {
     await this.blogCommentService.deleteComment(id);
   }
 
-  @Patch('/:id')
+  @Patch('comments/:id')
   public async update(
     @Param('id') id: string,
     @Body() dto: UpdateCommentDto
