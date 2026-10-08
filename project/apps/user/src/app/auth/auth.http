@@ -61,6 +61,12 @@ Content-Type: application/json
 
 ###
 
+# Check access token
+POST http://{{host}}/api/auth/check HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
 # Get user by ID
 GET http://{{host}}/api/auth/{{login.response.body.id}} HTTP/1.1
 Authorization: Bearer {{login.response.body.accessToken}}
@@ -82,3 +88,15 @@ Authorization: Bearer {{login.response.body.accessToken}}
 # @name refresh
 POST http://{{host}}/api/auth/refresh HTTP/1.1
 Authorization: Bearer {{login.response.body.refreshToken}}
+
+###
+
+# Change password (all refresh tokens of the user are revoked)
+PATCH http://{{host}}/api/auth/password HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "12345678",
+  "newPassword": "87654321"
+}

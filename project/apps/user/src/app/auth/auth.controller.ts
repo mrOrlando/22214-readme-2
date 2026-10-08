@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -18,8 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { fillDto, MongoIdValidationPipe } from '@project/helpers';
 import { AuthService } from './auth.service';
-import { CreateUserDto, LoginUserDto } from './dto';
-import { LoggedUserRdo, TokenRdo, UserRdo } from './rdo';
+import { ChangePasswordDto, CreateUserDto, LoginUserDto } from './dto';
+import { LoggedUserRdo, TokenPayloadRdo, TokenRdo, UserRdo } from './rdo';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import type { RequestWithTokenPayload } from './request-with-token-payload.interface';
@@ -95,6 +96,51 @@ export class AuthController {
   ): Promise<TokenRdo> {
     const token = await this.authService.createToken(user);
     return fillDto(TokenRdo, token);
+  }
+
+  @ApiOperation({ summary: 'Check an access token' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The access token payload.',
+    type: TokenPayloadRdo,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'The access token is invalid or expired.',
+  })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('check')
+  public async checkToken(
+    @Req() { user }: RequestWithTokenPayload
+  ): Promise<TokenPayloadRdo> {
+    return fillDto(TokenPayloadRdo, user);
+  }
+
+  @ApiOperation({ summary: 'Change the password of the current user' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The password has been successfully changed.',
+    type: UserRdo,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation failed.',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'The user is not authorized or the current password is wrong.',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Patch('password')
+  public async changePassword(
+    @Req() { user }: RequestWithTokenPayload,
+    @Body() dto: ChangePasswordDto
+  ): Promise<UserRdo> {
+    const updatedUser = await this.authService.changePassword(user.sub, dto);
+    return fillDto(UserRdo, updatedUser.toPOJO());
   }
 
   @ApiOperation({ summary: 'Get user details' })

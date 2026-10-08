@@ -17,7 +17,7 @@ import {
 import { UserRepository } from '../user/user.repository';
 import { UserEntity } from '../user/user.entity';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
-import { CreateUserDto, LoginUserDto } from './dto';
+import { ChangePasswordDto, CreateUserDto, LoginUserDto } from './dto';
 import {
   AUTH_USER_EXISTS_ERROR,
   AUTH_USER_NOT_FOUND,
@@ -101,5 +101,21 @@ export class AuthService {
     );
 
     return { accessToken, refreshToken };
+  }
+
+  public async changePassword(userId: string, dto: ChangePasswordDto) {
+    const existingUser = await this.getUser(userId);
+
+    if (!(await existingUser.comparePassword(dto.currentPassword))) {
+      throw new UnauthorizedException(AUTH_USER_PASSWORD_WRONG);
+    }
+
+    await existingUser.setPassword(dto.newPassword);
+    await this.userRepository.update(userId, existingUser);
+
+    // Tokens issued before the password change must not be refreshed
+    await this.refreshTokenService.deleteUserRefreshSessions(userId);
+
+    return existingUser;
   }
 }
