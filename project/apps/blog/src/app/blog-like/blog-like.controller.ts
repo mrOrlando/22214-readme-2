@@ -2,51 +2,37 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
 } from '@nestjs/common';
-import { BlogLikeService } from './blog-like.service';
 import { fillDto } from '@project/helpers';
-
+import { BlogLikeService } from './blog-like.service';
 import { LikeRdo } from './rdo';
-import { CreateLikeDto } from './dto/create-like.dto';
+import { UserIdDto, UserIdQuery } from '../common';
 
-@Controller('likes')
+@Controller('posts/:postId/likes')
 export class BlogLikeController {
   constructor(private readonly blogLikeService: BlogLikeService) {}
 
-  @Get('/:id')
-  public async show(@Param('id') id: string) {
-    const like = await this.blogLikeService.getLike(id);
-    return fillDto(LikeRdo, like?.toPOJO());
-  }
-
-  @Get('/')
-  public async index(
-    @Query('userId') userId?: string,
-    @Query('postId') postId?: string
-  ) {
-    const entities = await this.blogLikeService.getAllLikes({
-      userId,
-      postId,
-    });
-    const likes = entities.map((entity) => entity.toPOJO());
-    return fillDto(LikeRdo, likes);
-  }
-
   @Post('/')
-  public async create(@Body() dto: CreateLikeDto): Promise<LikeRdo> {
-    const newLike = await this.blogLikeService.createLike(dto);
+  public async create(
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Body() { userId }: UserIdDto
+  ): Promise<LikeRdo> {
+    const newLike = await this.blogLikeService.likePost(postId, userId);
     return fillDto(LikeRdo, newLike.toPOJO());
   }
 
-  @Delete('/:id')
+  @Delete('/')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async destroy(@Param('id') id: string): Promise<void> {
-    await this.blogLikeService.deleteLike(id);
+  public async destroy(
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Query() { userId }: UserIdQuery
+  ): Promise<void> {
+    await this.blogLikeService.unlikePost(postId, userId);
   }
 }
