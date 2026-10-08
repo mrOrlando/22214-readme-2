@@ -1,26 +1,42 @@
+import { randomUUID } from 'node:crypto';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import {
+  RefreshTokenPayload,
+  Token,
+  TokenPayload,
+  User,
+  UserRole,
+} from '@project/types';
 import { UserRepository } from '../user/user.repository';
 import { UserEntity } from '../user/user.entity';
+import { RefreshTokenService } from '../refresh-token/refresh-token.service';
 import { CreateUserDto, LoginUserDto } from './dto';
 import {
   AUTH_USER_EXISTS_ERROR,
   AUTH_USER_NOT_FOUND,
   AUTH_USER_PASSWORD_WRONG,
 } from './auth.constants';
-import { UserRole } from '@project/types';
+
+const MILLISECONDS_IN_SECOND = 1000;
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly refreshTokenService: RefreshTokenService
+  ) {}
 
   public async register(dto: CreateUserDto) {
     const existingUser = await this.userRepository.findByEmail(dto.email);
-
     if (existingUser) {
       throw new ConflictException(AUTH_USER_EXISTS_ERROR);
     }
@@ -37,28 +53,53 @@ export class AuthService {
 
   public async verifyUser(dto: LoginUserDto) {
     const { email, password } = dto;
-
     const existingUser = await this.userRepository.findByEmail(email);
-
     if (!existingUser) {
       throw new NotFoundException(AUTH_USER_NOT_FOUND);
     }
 
-    const userEntity = await new UserEntity(existingUser);
-    if (!(await userEntity.comparePassword(password))) {
+    if (!(await existingUser.comparePassword(password))) {
       throw new UnauthorizedException(AUTH_USER_PASSWORD_WRONG);
     }
 
-    return userEntity.toPOJO();
+    return existingUser;
   }
 
   public async getUser(id: string) {
     const existingUser = await this.userRepository.findById(id);
-
     if (!existingUser) {
       throw new NotFoundException(AUTH_USER_NOT_FOUND);
     }
 
     return existingUser;
+  }
+
+  public async createUserToken(user: User): Promise<Token> {
+    return this.createToken({
+      sub: `${user.id}`,
+      email: user.email,
+      name: user.name,
+    });
+  }
+
+  public async createToken(payload: TokenPayload): Promise<Token> {
+    const refreshTokenPayload: RefreshTokenPayload = {
+      ...payload,
+      tokenId: randomUUID(),
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload);
+    const refreshToken = await this.jwtService.signAsync(refreshTokenPayload, {
+      secret: this.configService.getOrThrow<string>('jwt.refreshTokenSecret'),
+      expiresIn: this.configService.getOrThrow('jwt.refreshTokenExpiresIn'),
+    });
+
+    const { exp } = this.jwtService.decode<{ exp: number }>(refreshToken);
+    await this.refreshTokenService.createRefreshSession(
+      refreshTokenPayload,
+      new Date(exp * MILLISECONDS_IN_SECOND)
+    );
+
+    return { accessToken, refreshToken };
   }
 }
