@@ -12,4 +12,7 @@ export class CommentRdo {
 
   @Expose()
   public postId!: string;
+
+  @Expose()
+  public createdAt!: Date;
 }

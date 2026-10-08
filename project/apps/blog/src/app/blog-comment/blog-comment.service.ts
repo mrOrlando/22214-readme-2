@@ -1,76 +1,65 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PaginationResult } from '@project/types';
+import { BlogPostService } from '../blog-post/blog-post.service';
 import { BlogCommentRepository } from './blog-comment.repository';
 import { BlogCommentEntity } from './blog-comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
-import { PaginationResult } from '@project/types';
 import { BlogCommentQuery } from './query/blog-comment.query';
+import {
+  COMMENT_FORBIDDEN_ERROR,
+  COMMENT_NOT_FOUND_ERROR,
+} from './blog-comment.constants';
 
 @Injectable()
 export class BlogCommentService {
   constructor(
-    private readonly blogCommentRepository: BlogCommentRepository
+    private readonly blogCommentRepository: BlogCommentRepository,
+    private readonly blogPostService: BlogPostService
   ) {}
 
-  public async getComment(id: string): Promise<BlogCommentEntity | null> {
-    return this.blogCommentRepository.findById(id);
+  public async getComment(id: string): Promise<BlogCommentEntity> {
+    const comment = await this.blogCommentRepository.findById(id);
+    if (!comment) {
+      throw new NotFoundException(COMMENT_NOT_FOUND_ERROR);
+    }
+
+    return comment;
   }
 
   public async getComments(
     postId: string,
     query: BlogCommentQuery
   ): Promise<PaginationResult<BlogCommentEntity>> {
+    await this.blogPostService.getPublishedPost(postId);
+
     return this.blogCommentRepository.findByPostId(postId, query);
   }
 
   public async createComment(
+    postId: string,
     dto: CreateCommentDto
   ): Promise<BlogCommentEntity> {
-    const postExists = await this.blogCommentRepository.postExists(dto.postId);
-
-    if (!postExists) {
-      throw new NotFoundException(`Post with ID "${dto.postId}" not found`);
-    }
+    await this.blogPostService.getPublishedPost(postId);
 
     const newComment = new BlogCommentEntity({
       message: dto.message,
       userId: dto.userId,
-      postId: dto.postId,
+      postId,
     });
-    await this.blogCommentRepository.save(newComment);
 
-    return newComment;
+    return this.blogCommentRepository.save(newComment);
   }
 
-  public async deleteComment(id: string): Promise<void> {
-    try {
-      await this.blogCommentRepository.deleteById(id);
-    } catch {
-      throw new NotFoundException(`Comment with ID "${id}" not found`);
+  public async deleteComment(id: string, userId: string): Promise<void> {
+    const comment = await this.getComment(id);
+    if (comment.userId !== userId) {
+      throw new ForbiddenException(COMMENT_FORBIDDEN_ERROR);
     }
-  }
 
-  public async updateComment(
-    id: string,
-    dto: UpdateCommentDto
-  ): Promise<BlogCommentEntity> {
-    try {
-      const existing = await this.blogCommentRepository.findById(id);
-      if (!existing) {
-        throw new NotFoundException(`Comment with ID "${id}" not found`);
-      }
-
-      const entity = new BlogCommentEntity({
-        ...existing.toPOJO(),
-        message: dto.message,
-      });
-
-      return await this.blogCommentRepository.update(id, entity);
-    } catch {
-      throw new NotFoundException(`Comment with ID "${id}" not found`);
-    }
+    await this.blogCommentRepository.deleteById(id);
   }
 }
