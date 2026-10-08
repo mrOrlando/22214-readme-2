@@ -6,12 +6,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
-import { BlogTagService } from './blog-tag.service';
 import { fillDto } from '@project/helpers';
-
+import { BlogTagService } from './blog-tag.service';
 import { TagRdo } from './rdo';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
@@ -21,15 +21,15 @@ export class BlogTagController {
   constructor(private readonly blogTagService: BlogTagService) {}
 
   @Get('/:id')
-  public async show(@Param('id') id: string) {
-    return this.blogTagService.getTag(id);
+  public async show(@Param('id', ParseUUIDPipe) id: string): Promise<TagRdo> {
+    const tag = await this.blogTagService.getTag(id);
+    return fillDto(TagRdo, tag?.toPOJO());
   }
 
   @Get('/')
-  public async index() {
+  public async index(): Promise<TagRdo[]> {
     const entities = await this.blogTagService.getAllTags();
-    const tags = entities.map((entity) => entity.toPOJO());
-    return fillDto(TagRdo, tags);
+    return entities.map((entity) => fillDto(TagRdo, entity.toPOJO()));
   }
 
   @Post('/')
@@ -40,13 +40,13 @@ export class BlogTagController {
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async destroy(@Param('id') id: string): Promise<void> {
+  public async destroy(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.blogTagService.deleteTag(id);
   }
 
   @Patch('/:id')
   public async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTagDto
   ): Promise<TagRdo> {
     const updatedTag = await this.blogTagService.updateTag(id, dto);

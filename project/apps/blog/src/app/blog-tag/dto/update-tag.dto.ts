@@ -1,9 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { CreateTagDto } from './create-tag.dto';
 
-export class UpdateTagDto {
-  @ApiProperty({
-    description: 'Unique tag title, stored in lower case',
-    example: 'flowers',
-  })
-  public title!: string;
-}
+export class UpdateTagDto extends CreateTagDto {}

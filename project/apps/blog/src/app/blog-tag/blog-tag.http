@@ -38,3 +38,13 @@ Content-Type: application/json
 {
   "title": "Journey"
 }
+
+###
+
+# Create tag with invalid title (400)
+POST http://{{host}}/api/tags HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "two words"
+}
