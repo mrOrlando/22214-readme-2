@@ -25,6 +25,7 @@ export class UserEntity implements AuthUser, Entity<EntityIdType, AuthUser> {
   }
 
   public populate(user: AuthUser): void {
+    this.id = user.id ?? undefined;
     this.email = user.email;
     this.name = user.name;
     this.role = user.role;
