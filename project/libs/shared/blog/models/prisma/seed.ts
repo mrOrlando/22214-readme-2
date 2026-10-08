@@ -27,11 +27,11 @@ function getPosts() {
     {
       id: FIRST_POST_UUID,
       type: PostType.text,
-      title: 'Thinner',
+      title: 'Thinner: a horror novel worth reading',
       userId: FIRST_USER_ID,
-      text: 'I recently read the horror novel "Thinner".',
+      text: 'I recently read the horror novel "Thinner". The story of a lawyer cursed to lose weight keeps you tense until the very last page.',
       announcement:
-        "In my opinion, it is one of Stephen King's scariest novels.",
+        "In my opinion, it is one of Stephen King's scariest and most underrated novels.",
       tags: {
         connect: [{ id: FIRST_TAG_UUID }],
       },
@@ -39,10 +39,11 @@ function getPosts() {
     {
       id: SECOND_POST_UUID,
       type: PostType.text,
-      title: "You Don't Know JavaScript",
+      title: "You Don't Know JavaScript: a review",
       userId: FIRST_USER_ID,
-      text: 'A useful book on JavaScript',
-      announcement: 'Secrets and hidden knowledge of JavaScript.',
+      text: 'A useful series of books on JavaScript. It explains scopes, closures, prototypes and asynchrony much deeper than most tutorials do.',
+      announcement:
+        'Secrets and hidden knowledge of JavaScript that every developer should know.',
       tags: {
         connect: [{ id: FIRST_TAG_UUID }, { id: SECOND_TAG_UUID }],
       },
