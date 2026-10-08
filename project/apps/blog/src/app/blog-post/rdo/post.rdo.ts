@@ -1,5 +1,6 @@
-import { Comment, PostStatus, PostType, Tag } from '@project/types';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { PostStatus, PostType } from '@project/types';
+import { TagRdo } from '../../blog-tag/rdo';
 
 export class PostRdo {
   @Expose()
@@ -63,8 +64,6 @@ export class PostRdo {
   public commentsCount!: number;
 
   @Expose()
-  public tags!: Tag[];
-
-  @Expose()
-  public comments!: Comment[];
+  @Type(() => TagRdo)
+  public tags!: TagRdo[];
 }
