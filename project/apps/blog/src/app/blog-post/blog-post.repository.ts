@@ -5,7 +5,7 @@ import { BasePostgresRepository } from '@project/helpers';
 import { PaginationResult, Post, PostStatus } from '@project/types';
 import { BlogPostEntity } from './blog-post.entity';
 import { BlogPostQuery } from './query';
-import { PostSortType } from './blog-post.constants';
+import { MAX_SEARCH_POST_COUNT, PostSortType } from './blog-post.constants';
 
 const POST_INCLUDE = {
   tags: true,
@@ -91,6 +91,35 @@ export class BlogPostRepository extends BasePostgresRepository<
       itemsPerPage: query.limit,
       totalItems,
     };
+  }
+
+  public async findDrafts(userId: string): Promise<BlogPostEntity[]> {
+    const posts = await this.client.post.findMany({
+      where: {
+        status: PostStatus.Draft,
+        userId,
+      },
+      orderBy: POST_ORDER_BY[PostSortType.Date],
+      include: POST_INCLUDE,
+    });
+
+    return posts.map((post) => this.createEntityFromRecord(post));
+  }
+
+  public async searchByTitle(words: string[]): Promise<BlogPostEntity[]> {
+    const posts = await this.client.post.findMany({
+      where: {
+        status: PostStatus.Published,
+        OR: words.map((word) => ({
+          title: { contains: word, mode: 'insensitive' },
+        })),
+      },
+      orderBy: POST_ORDER_BY[PostSortType.Date],
+      take: MAX_SEARCH_POST_COUNT,
+      include: POST_INCLUDE,
+    });
+
+    return posts.map((post) => this.createEntityFromRecord(post));
   }
 
   public async findRepost(

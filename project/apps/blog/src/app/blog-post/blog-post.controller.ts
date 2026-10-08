@@ -15,7 +15,7 @@ import { fillDto } from '@project/helpers';
 import { BlogPostService } from './blog-post.service';
 import { PostRdo, PostWithPaginationRdo } from './rdo';
 import { CreatePostDto, UpdatePostDto } from './dto';
-import { BlogPostQuery } from './query';
+import { BlogPostQuery, SearchPostQuery } from './query';
 import { UserIdDto, UserIdQuery } from '../common';
 
 @Controller('posts')
@@ -32,6 +32,18 @@ export class BlogPostController {
       ...postsWithPagination,
       entities: postsWithPagination.entities.map((post) => post.toPOJO()),
     });
+  }
+
+  @Get('/drafts')
+  public async drafts(@Query() { userId }: UserIdQuery): Promise<PostRdo[]> {
+    const posts = await this.blogPostService.getDrafts(userId);
+    return posts.map((post) => fillDto(PostRdo, post.toPOJO()));
+  }
+
+  @Get('/search')
+  public async search(@Query() { title }: SearchPostQuery): Promise<PostRdo[]> {
+    const posts = await this.blogPostService.searchPosts(title);
+    return posts.map((post) => fillDto(PostRdo, post.toPOJO()));
   }
 
   @Get('/:id')

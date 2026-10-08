@@ -48,6 +48,19 @@ export class BlogPostService {
     return this.blogPostRepository.find(query);
   }
 
+  public async getDrafts(userId: string): Promise<BlogPostEntity[]> {
+    return this.blogPostRepository.findDrafts(userId);
+  }
+
+  public async searchPosts(title: string): Promise<BlogPostEntity[]> {
+    const words = title.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      return [];
+    }
+
+    return this.blogPostRepository.searchByTitle(words);
+  }
+
   public async createPost(dto: CreatePostDto): Promise<BlogPostEntity> {
     const tags = await this.blogTagService.getOrCreateTagsByTitles(dto.tags);
     const newPost = BlogPostEntity.fromDto(dto, tags);
