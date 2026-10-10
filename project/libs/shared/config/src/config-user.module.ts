@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { resolve } from 'path';
 import appConfig from './app.config';
@@ -11,14 +11,21 @@ const ENV_USER_FILE_PATHS = [
   resolve(process.cwd(), 'user.env'),
 ];
 
-@Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      cache: true,
-      load: [appConfig, mongoConfig, jwtConfig],
-      envFilePath: ENV_USER_FILE_PATHS,
-    }),
-  ],
-})
-export class ConfigUserModule {}
+// The env file is read when the module is registered, not when the file is
+// imported, so that applications do not load env files of each other.
+@Module({})
+export class ConfigUserModule {
+  public static register(): DynamicModule {
+    return {
+      module: ConfigUserModule,
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          cache: true,
+          load: [appConfig, mongoConfig, jwtConfig],
+          envFilePath: ENV_USER_FILE_PATHS,
+        }),
+      ],
+    };
+  }
+}
