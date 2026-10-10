@@ -1,0 +1,66 @@
+name: readme-notification
+
+services:
+  readme.notification.mongo:
+    image: mongo
+    restart: always
+    container_name: readme.notification.mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: test
+      MONGO_INITDB_DATABASE: readme-notification
+    ports:
+      - 27018:27017
+    volumes:
+      - readme.notification.mongo:/data/db
+    networks:
+      - readme.notification
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/readme-notification --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  readme.notification.rabbitmq:
+    image: rabbitmq:4-management
+    restart: always
+    container_name: readme.notification.rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: test
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - readme.notification.rabbitmq:/var/lib/rabbitmq
+    networks:
+      - readme.notification
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  readme.notification.fakesmtp:
+    image: maildev/maildev
+    restart: always
+    container_name: readme.notification.fakesmtp
+    ports:
+      - 1025:1025
+      - 1080:1080
+    networks:
+      - readme.notification
+    healthcheck:
+      test: wget -q -O /dev/null http://127.0.0.1:1080/index.html
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  readme.notification.mongo:
+  readme.notification.rabbitmq:
+
+networks:
+  readme.notification:
+    driver: bridge
