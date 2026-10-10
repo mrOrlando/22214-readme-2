@@ -17,11 +17,20 @@ export class EmailSubscriberRepository extends BaseMongoRepository<
     super(emailSubscriberModel, EmailSubscriberEntity.fromObject);
   }
 
-  public async findByEmail(
-    email: string
-  ): Promise<EmailSubscriberEntity | null> {
-    const document = await this.model.findOne({ email }).exec();
-    return this.createEntityFromDocument(document);
+  // Atomic: parallel events for the same email create one subscriber
+  public async saveIfNew(
+    entity: EmailSubscriberEntity
+  ): Promise<EmailSubscriberEntity> {
+    const { email, name, userId } = entity;
+    const document = await this.model
+      .findOneAndUpdate(
+        { email },
+        { $setOnInsert: { email, name, userId } },
+        { upsert: true, new: true }
+      )
+      .exec();
+
+    return this.createEntityFromDocument(document) ?? entity;
   }
 
   public async findAll(): Promise<EmailSubscriberEntity[]> {

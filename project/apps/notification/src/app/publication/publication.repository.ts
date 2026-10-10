@@ -17,9 +17,20 @@ export class PublicationRepository extends BaseMongoRepository<
     super(publicationModel, PublicationEntity.fromObject);
   }
 
-  public async findByPostId(postId: string): Promise<PublicationEntity | null> {
-    const document = await this.model.findOne({ postId }).exec();
-    return this.createEntityFromDocument(document);
+  // Atomic: parallel events for the same post create one publication
+  public async saveIfNew(
+    entity: PublicationEntity
+  ): Promise<PublicationEntity> {
+    const { postId, userId, type, title, publishedAt } = entity;
+    const document = await this.model
+      .findOneAndUpdate(
+        { postId },
+        { $setOnInsert: { postId, userId, type, title, publishedAt } },
+        { upsert: true, new: true }
+      )
+      .exec();
+
+    return this.createEntityFromDocument(document) ?? entity;
   }
 
   public async findNotSent(): Promise<PublicationEntity[]> {
@@ -36,6 +47,20 @@ export class PublicationRepository extends BaseMongoRepository<
   }
 
   public async markAsSent(ids: string[], sentAt: Date): Promise<void> {
-    await this.model.updateMany({ _id: { $in: ids } }, { sentAt }).exec();
+    await this.model
+      .updateMany({ _id: { $in: ids } }, { sentAt, deliveredTo: [] })
+      .exec();
+  }
+
+  public async addRecipients(
+    ids: string[],
+    subscriberIds: string[]
+  ): Promise<void> {
+    await this.model
+      .updateMany(
+        { _id: { $in: ids } },
+        { $addToSet: { deliveredTo: { $each: subscriberIds } } }
+      )
+      .exec();
   }
 }

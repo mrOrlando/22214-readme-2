@@ -1,11 +1,13 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Controller, Logger, UseFilters } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { RabbitEvent } from '@project/types';
 import { acknowledge } from '../common/acknowledge';
+import { RmqRejectFilter } from '../common/rmq-reject.filter';
 import { AddPublicationDto } from './dto/add-publication.dto';
 import { PublicationService } from './publication.service';
 
 @Controller()
+@UseFilters(RmqRejectFilter)
 export class PublicationController {
   private readonly logger = new Logger(PublicationController.name);
 

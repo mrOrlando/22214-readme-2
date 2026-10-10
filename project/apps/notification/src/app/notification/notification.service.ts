@@ -25,7 +25,8 @@ export class NotificationService {
 
   // Sends new publications since the last mailing to all subscribers.
   // Publications are marked as sent only when every letter has been sent,
-  // so a failed mailing can be repeated.
+  // so a failed mailing can be repeated. Subscribers who have received
+  // their letter are remembered and do not get it again on a repeat.
   public async sendNewPublications(): Promise<SendingResult> {
     if (this.isSending) {
       throw new ConflictException(SENDING_IN_PROGRESS_ERROR);
@@ -47,31 +48,48 @@ export class NotificationService {
         };
       }
 
+      const letters = subscribers
+        .map((subscriber) => ({
+          subscriber,
+          digest: publications.filter(
+            ({ deliveredTo }) => !deliveredTo.includes(`${subscriber.id}`)
+          ),
+        }))
+        .filter(({ digest }) => digest.length > 0);
+
+      // The mail transport limits the number of simultaneous connections
       const results = await Promise.allSettled(
-        subscribers.map((subscriber) =>
-          this.mailService.sendDigest(subscriber, publications)
+        letters.map(({ subscriber, digest }) =>
+          this.mailService.sendDigest(subscriber, digest)
         )
       );
 
+      const deliveredTo: string[] = [];
       results.forEach((result, index) => {
+        const { subscriber } = letters[index];
         if (result.status === 'rejected') {
           this.logger.error(
-            `Failed to send the letter to ${subscribers[index].email}: ${result.reason}`
+            `Failed to send the letter to ${subscriber.email}: ${result.reason}`
           );
+          return;
         }
+        deliveredTo.push(`${subscriber.id}`);
       });
 
-      const failed = results.filter(
-        ({ status }) => status === 'rejected'
-      ).length;
+      const failed = letters.length - deliveredTo.length;
       if (failed === 0) {
         await this.publicationService.markAsSent(publications);
+      } else if (deliveredTo.length > 0) {
+        await this.publicationService.markAsDelivered(
+          publications,
+          deliveredTo
+        );
       }
 
       return {
         publications: publications.length,
         recipients: subscribers.length,
-        sent: results.length - failed,
+        sent: deliveredTo.length,
         failed,
       };
     } finally {

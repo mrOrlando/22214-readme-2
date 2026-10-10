@@ -9,6 +9,7 @@ export interface Publication {
   title: string;
   publishedAt: Date;
   sentAt?: Date | null;
+  deliveredTo?: string[];
 }
 
 export class PublicationEntity
@@ -21,6 +22,7 @@ export class PublicationEntity
   public title!: string;
   public publishedAt!: Date;
   public sentAt?: Date | null;
+  public deliveredTo!: string[];
 
   constructor(publication: Publication) {
     this.populate(publication);
@@ -34,6 +36,7 @@ export class PublicationEntity
     this.title = publication.title;
     this.publishedAt = publication.publishedAt;
     this.sentAt = publication.sentAt ?? null;
+    this.deliveredTo = publication.deliveredTo ?? [];
   }
 
   public toPOJO(): Publication {
@@ -45,6 +48,7 @@ export class PublicationEntity
       title: this.title,
       publishedAt: this.publishedAt,
       sentAt: this.sentAt ?? null,
+      deliveredTo: this.deliveredTo,
     };
   }
 

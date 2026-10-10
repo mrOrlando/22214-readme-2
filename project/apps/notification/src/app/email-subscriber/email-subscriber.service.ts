@@ -1,12 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EmailSubscriberEntity } from './email-subscriber.entity';
 import { EmailSubscriberRepository } from './email-subscriber.repository';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 
 @Injectable()
 export class EmailSubscriberService {
-  private readonly logger = new Logger(EmailSubscriberService.name);
-
   constructor(
     private readonly emailSubscriberRepository: EmailSubscriberRepository
   ) {}
@@ -15,15 +13,9 @@ export class EmailSubscriberService {
   public async addSubscriber(
     dto: CreateSubscriberDto
   ): Promise<EmailSubscriberEntity> {
-    const existingSubscriber = await this.emailSubscriberRepository.findByEmail(
-      dto.email
+    return this.emailSubscriberRepository.saveIfNew(
+      new EmailSubscriberEntity(dto)
     );
-    if (existingSubscriber) {
-      this.logger.warn(`The subscriber ${dto.email} already exists`);
-      return existingSubscriber;
-    }
-
-    return this.emailSubscriberRepository.save(new EmailSubscriberEntity(dto));
   }
 
   public async getAllSubscribers(): Promise<EmailSubscriberEntity[]> {

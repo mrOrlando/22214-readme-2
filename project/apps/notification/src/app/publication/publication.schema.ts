@@ -25,6 +25,11 @@ export class PublicationModel extends Document {
   // null until the publication is included in a sent digest
   @Prop({ type: Date, default: null, index: true })
   public sentAt!: Date | null;
+
+  // Ids of the subscribers who received the publication while it is not
+  // sent to everyone; they do not get it again when the mailing is repeated
+  @Prop({ type: [String], default: [] })
+  public deliveredTo!: string[];
 }
 
 export const PublicationSchema = SchemaFactory.createForClass(PublicationModel);
