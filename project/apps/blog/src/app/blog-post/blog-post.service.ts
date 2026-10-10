@@ -4,7 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PaginationResult, PostContent, RabbitEvent } from '@project/types';
+import {
+  PaginationResult,
+  PostContent,
+  PostPublishedPayload,
+  RabbitEvent,
+} from '@project/types';
 import { RabbitPublisher } from '@project/helpers';
 import { BlogPostRepository } from './blog-post.repository';
 import { BlogPostEntity } from './blog-post.entity';
@@ -68,7 +73,7 @@ export class BlogPostService {
     const newPost = BlogPostEntity.fromDto(dto, tags);
 
     const savedPost = await this.blogPostRepository.save(newPost);
-    await this.notifyAboutPublication(savedPost);
+    this.notifyAboutPublication(savedPost);
 
     return savedPost;
   }
@@ -86,7 +91,7 @@ export class BlogPostService {
     }
 
     const savedRepost = await this.blogPostRepository.save(repost);
-    await this.notifyAboutPublication(savedRepost);
+    this.notifyAboutPublication(savedRepost);
 
     return savedRepost;
   }
@@ -122,25 +127,28 @@ export class BlogPostService {
 
     const updatedPost = await this.blogPostRepository.update(id, existingPost);
     if (!wasPublished) {
-      await this.notifyAboutPublication(updatedPost);
+      this.notifyAboutPublication(updatedPost);
     }
 
     return updatedPost;
   }
 
   // Only published posts are announced; a draft is announced when published
-  private async notifyAboutPublication(post: BlogPostEntity): Promise<void> {
-    if (!post.isPublished()) {
+  private notifyAboutPublication(post: BlogPostEntity): void {
+    if (!post.isPublished() || !post.publishedAt) {
       return;
     }
 
-    await this.rabbitPublisher.publish(RabbitEvent.PostPublished, {
-      postId: `${post.id}`,
-      userId: post.userId,
-      type: post.type,
-      title: post.getDisplayTitle(),
-      publishedAt: `${post.publishedAt?.toISOString()}`,
-    });
+    this.rabbitPublisher.publish<PostPublishedPayload>(
+      RabbitEvent.PostPublished,
+      {
+        postId: `${post.id}`,
+        userId: post.userId,
+        type: post.type,
+        title: post.getDisplayTitle(),
+        publishedAt: post.publishedAt.toISOString(),
+      }
+    );
   }
 
   private async getOwnPost(

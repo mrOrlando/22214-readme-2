@@ -13,6 +13,7 @@ import {
   Token,
   TokenPayload,
   User,
+  UserRegisteredPayload,
   UserRole,
 } from '@project/types';
 import { RabbitPublisher } from '@project/helpers';
@@ -54,11 +55,14 @@ export class AuthService {
     const newUser = await this.userRepository.save(user);
 
     // The notification service keeps registered users as mail recipients
-    await this.rabbitPublisher.publish(RabbitEvent.UserRegistered, {
-      userId: `${newUser.id}`,
-      email: newUser.email,
-      name: newUser.name,
-    });
+    this.rabbitPublisher.publish<UserRegisteredPayload>(
+      RabbitEvent.UserRegistered,
+      {
+        userId: `${newUser.id}`,
+        email: newUser.email,
+        name: newUser.name,
+      }
+    );
 
     return newUser;
   }
