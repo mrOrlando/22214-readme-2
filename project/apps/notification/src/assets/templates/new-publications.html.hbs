@@ -1,0 +1,8 @@
+<p>Hello, {{name}}!</p>
+<p>New publications since the last mailing:</p>
+<ul>
+{{#each publications}}
+  <li><strong>{{title}}</strong> ({{type}}, {{formatDate publishedAt}}, author {{userId}})</li>
+{{/each}}
+</ul>
+<p>Readme</p>
