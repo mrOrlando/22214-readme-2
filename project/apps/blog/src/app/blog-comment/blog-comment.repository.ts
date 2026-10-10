@@ -1,13 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaClientService } from '@project/models';
 import { BasePostgresRepository } from '@project/helpers';
+import { Comment, PaginationResult } from '@project/types';
 import { BlogCommentEntity } from './blog-comment.entity';
-import { Comment } from '@project/types';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import {
-  CommentFilter,
-  commentFilterToPrismaFilter,
-} from './blog-comment.filter';
-import { MAX_COMMENTS_LIMIT } from './blog-comment.constants';
+import { BlogCommentQuery } from './query/blog-comment.query';
 
 @Injectable()
 export class BlogCommentRepository extends BasePostgresRepository<
@@ -23,30 +19,34 @@ export class BlogCommentRepository extends BasePostgresRepository<
       where: { id },
     });
 
-    if (!comment) {
-      throw new NotFoundException(`Comment with id ${id} not found.`);
-    }
-
     return this.createEntityFromDocument(comment);
   }
 
-  public async find(filter?: CommentFilter): Promise<BlogCommentEntity[]> {
-    const comments = await this.client.comment.findMany({
-      where: commentFilterToPrismaFilter(filter),
-      take: MAX_COMMENTS_LIMIT,
-    });
+  public async findByPostId(
+    postId: string,
+    query: BlogCommentQuery
+  ): Promise<PaginationResult<BlogCommentEntity>> {
+    const where = { postId };
 
-    return comments
-      .map((comment) => this.createEntityFromDocument(comment))
-      .filter((comment): comment is BlogCommentEntity => comment !== null);
-  }
+    const [comments, totalItems] = await Promise.all([
+      this.client.comment.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.client.comment.count({ where }),
+    ]);
 
-  public async postExists(postId: string): Promise<boolean> {
-    const count = await this.client.post.count({
-      where: { id: postId },
-    });
-
-    return count > 0;
+    return {
+      entities: comments.map((comment) =>
+        BlogCommentEntity.fromObject(comment)
+      ),
+      currentPage: query.page,
+      totalPages: Math.ceil(totalItems / query.limit),
+      itemsPerPage: query.limit,
+      totalItems,
+    };
   }
 
   override async save(entity: BlogCommentEntity): Promise<BlogCommentEntity> {
@@ -58,30 +58,7 @@ export class BlogCommentRepository extends BasePostgresRepository<
       },
     });
 
-    entity.id = newComment.id;
-    entity.createdAt = newComment.createdAt;
-    entity.updatedAt = newComment.updatedAt;
-
-    return entity;
-  }
-
-  override async update(
-    id: string,
-    entity: BlogCommentEntity
-  ): Promise<BlogCommentEntity> {
-    const updatedComment = await this.client.comment.update({
-      where: { id },
-      data: {
-        message: entity.message,
-      },
-    });
-
-    const updatedEntity = this.createEntityFromDocument(updatedComment);
-    if (!updatedEntity) {
-      throw new NotFoundException(`Comment with id ${id} not found.`);
-    }
-
-    return updatedEntity;
+    return BlogCommentEntity.fromObject(newComment);
   }
 
   override async deleteById(id: string): Promise<void> {

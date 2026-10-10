@@ -1,5 +1,5 @@
 @hostname=localhost
-@port=3000
+@port=3333
 @host={{hostname}}:{{port}}
 
 # Create a new user
@@ -15,12 +15,20 @@ Content-Type: application/json
 
 ###
 
-# Get user by ID
-GET http://{{host}}/api/auth/{{register.response.body.id}} HTTP/1.1
+# Try to create a user with invalid data (400)
+POST http://{{host}}/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "name": "Jo",
+  "password": "123"
+}
 
 ###
 
 # Login user by email and password
+# @name login
 POST http://{{host}}/api/auth/login HTTP/1.1
 Content-Type: application/json
 
@@ -31,7 +39,7 @@ Content-Type: application/json
 
 ###
 
-# Try to login user by email and wrong password
+# Try to login user by email and wrong password (401)
 POST http://{{host}}/api/auth/login HTTP/1.1
 Content-Type: application/json
 
@@ -42,11 +50,53 @@ Content-Type: application/json
 
 ###
 
-# Try to login user by fake email
+# Try to login user by fake email (404)
 POST http://{{host}}/api/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
   "email": "fake-email@example.com",
   "password": "12345678"
+}
+
+###
+
+# Check access token
+POST http://{{host}}/api/auth/check HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Get user by ID
+GET http://{{host}}/api/auth/{{login.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Try to get user without a token (401)
+GET http://{{host}}/api/auth/{{login.response.body.id}} HTTP/1.1
+
+###
+
+# Try to get user by invalid ID (400)
+GET http://{{host}}/api/auth/123 HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Get a new pair of tokens (a refresh token can be used only once)
+# @name refresh
+POST http://{{host}}/api/auth/refresh HTTP/1.1
+Authorization: Bearer {{login.response.body.refreshToken}}
+
+###
+
+# Change password (all refresh tokens of the user are revoked)
+PATCH http://{{host}}/api/auth/password HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "12345678",
+  "newPassword": "87654321"
 }

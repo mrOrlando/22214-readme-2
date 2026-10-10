@@ -1,13 +1,8 @@
-import {
-  Comment,
-  Post,
-  PostContent,
-  PostStatus,
-  PostType,
-} from '@project/types';
+import { Post, PostContent, PostStatus, PostType } from '@project/types';
 import { Entity } from '@project/helpers';
 import { BlogTagEntity } from '../blog-tag/blog-tag.entity';
 import { CreatePostDto } from './dto';
+import { POST_CONTENT_FIELDS, POST_TYPE_FIELDS } from './blog-post.constants';
 
 export class BlogPostEntity implements Post, Entity<string, Post> {
   public id?: string;
@@ -30,7 +25,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
   public updatedAt?: Date;
   public userId!: string;
   public tags!: BlogTagEntity[];
-  public comments!: Comment[];
+  public likesCount = 0;
+  public commentsCount = 0;
 
   public populate(data: Post): BlogPostEntity {
     this.id = data.id ?? undefined;
@@ -45,21 +41,19 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     this.createdAt = data.createdAt ?? undefined;
     this.userId = data.userId;
     this.tags = data.tags.map((tag) => BlogTagEntity.fromObject(tag));
-    this.comments = data.comments;
+    this.likesCount = data.likesCount ?? 0;
+    this.commentsCount = data.commentsCount ?? 0;
 
     return this;
   }
 
+  // Keeps only the fields that belong to the post type
   public populateContent(data: PostContent): BlogPostEntity {
-    this.title = data.title ?? null;
-    this.videoUrl = data.videoUrl ?? null;
-    this.announcement = data.announcement ?? null;
-    this.text = data.text ?? null;
-    this.quoteText = data.quoteText ?? null;
-    this.quoteAuthor = data.quoteAuthor ?? null;
-    this.photo = data.photo ?? null;
-    this.linkUrl = data.linkUrl ?? null;
-    this.linkDescription = data.linkDescription ?? null;
+    const typeFields = POST_TYPE_FIELDS[this.type];
+
+    for (const field of POST_CONTENT_FIELDS) {
+      this[field] = typeFields.includes(field) ? data[field] ?? null : null;
+    }
 
     return this;
   }
@@ -78,6 +72,10 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     };
   }
 
+  public isPublished(): boolean {
+    return this.status === PostStatus.Published;
+  }
+
   public toPOJO(): Post {
     return {
       id: this.id,
@@ -90,7 +88,8 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
       ...this.getContent(),
       userId: this.userId,
       tags: this.tags.map((tagEntity) => tagEntity.toPOJO()),
-      comments: this.comments,
+      likesCount: this.likesCount,
+      commentsCount: this.commentsCount,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -110,7 +109,6 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     post.populateContent(dto);
     post.userId = dto.userId;
     post.tags = tags;
-    post.comments = [];
 
     return post;
   }
@@ -127,7 +125,6 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     repost.originalPostId = original.originalPostId ?? original.id;
     repost.originalUserId = original.originalUserId ?? original.userId;
     repost.tags = original.tags;
-    repost.comments = [];
 
     return repost;
   }

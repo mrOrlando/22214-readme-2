@@ -56,7 +56,7 @@ npm install
 
 | Сервис | Запуск | Что открыть |
 |--------|--------|-------------|
-| **blog** | `npx nx run blog:serve` | API: [http://localhost:3000/api](http://localhost:3000/api) (`GET`). Порт: **`PORT`**, по умолчанию **3000**. Префикс маршрутов: **`/api`**. Swagger UI в коде **не** подключён. |
+| **blog** | `npx nx run blog:serve` | API: [http://localhost:3000/api](http://localhost:3000/api) (`GET`). Порт: **`PORT`**, по умолчанию **3000**. Префикс маршрутов: **`/api`**. Swagger: [http://localhost:3000/spec](http://localhost:3000/spec). После `db:generate` запускайте с **`--skip-nx-cache`**, иначе Nx может взять сборку со старым Prisma Client. |
 | **@project/user** | `npx nx run @project/user:serve` | Swagger: **`/spec`** — например [http://localhost:3333/spec](http://localhost:3333/spec) (порт из **`apps/user/user.env`**, в примере **3333**). Если не открывается — попробуйте **`/api/spec`**. |
 
 Точный URL после старта смотрите в логе приложения.
@@ -72,6 +72,7 @@ npm install
 1. Рядом с нужным **`docker-compose.yml`** должен быть **заполненный** env-файл; если его нет — скопируйте **`*.env.example`** и отредактируйте.
 2. **Blog:** `DATABASE_URL` в **`project/.env`** должен совпадать с пользователем, паролем, хостом, портом и именем БД из **`apps/blog/blog.env`**.
 3. **User:** **`apps/user/user.env`** должен совпадать с **`docker-compose.yml`** в `apps/user` (по умолчанию как в **`user.env.example`**: `admin` / `test`, база **`readme-users`**).
+   В **`user.env`** также нужны переменные JWT (см. **`user.env.example`**): **`JWT_ACCESS_TOKEN_SECRET`**, **`JWT_ACCESS_TOKEN_EXPIRES_IN`**, **`JWT_REFRESH_TOKEN_SECRET`**, **`JWT_REFRESH_TOKEN_EXPIRES_IN`**. Без них сервис не стартует.
 
 После смены учётных данных может понадобиться пересоздать контейнеры и тома (см. материалы курса).
 

@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class LoggedUserRdo {
   @ApiProperty({
     description: 'User ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '658170cbb954e9f5b905ccf4',
   })
   @Expose()
   public id!: string;
@@ -17,10 +17,16 @@ export class LoggedUserRdo {
   public email!: string;
 
   @ApiProperty({
-    description: 'User access token',
-    example:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm90Zm91bmQubG9jYWwiLCJyb2xlIjoidXNlciIsImxhc3RuYW1lIjoiU21pdGgiLCJmaXJzdG5hbWUiOiJLZWtzIiwiaWF0IjoxNzA0NjE5MTk5LCJleHAiOjE3MDQ2MTk0OTl9.skXytHVZvtETNqSSqUjsVIq4ogGs3fD_7mgn1qpRLPo',
+    description: 'Access token',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
   @Expose()
   public accessToken!: string;
+
+  @ApiProperty({
+    description: 'Refresh token',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  @Expose()
+  public refreshToken!: string;
 }

@@ -1,42 +1,52 @@
 @hostname=localhost
 @port=3000
 @host={{hostname}}:{{port}}
+@postId=ab04593b-da99-4fe3-8b4b-e06d82e2efdd
+@userId=6581762309c030b503e30512
+@otherUserId=658170cbb954e9f5b905ccf4
 
-# Get comments
-GET http://{{host}}/api/comments HTTP/1.1
+# Get comments of the post (50 per page, newest first)
+GET http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
 
 ###
 
-# Get comment by id
-@commentId=6cf68e65-742a-4934-90c3-9415f4202745
-
-GET http://{{host}}/api/comments/{{commentId}} HTTP/1.1
+# Get the second page, 1 comment per page
+GET http://{{host}}/api/posts/{{postId}}/comments?limit=1&page=2 HTTP/1.1
 
 ###
 
 # Create comment
 # @name createComment
-POST http://{{host}}/api/comments HTTP/1.1
+POST http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
 Content-Type: application/json
 
 {
-  "message": "New comment",
-  "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "postId": "550e8400-e29b-41d4-a716-446655440001"
+  "message": "Great post, thank you for sharing!",
+  "userId": "{{userId}}"
 }
 
 ###
 
-# Delete comment by id
-
-DELETE http://{{host}}/api/comments/{{createComment.response.body.id}} HTTP/1.1
-
-###
-
-# Update comment by id
-PATCH http://{{host}}/api/comments/{{createComment.response.body.id}} HTTP/1.1
+# Create comment with invalid data (400)
+POST http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
 Content-Type: application/json
 
 {
-  "message": "Updated comment"
+  "message": "Short",
+  "userId": "not-an-id"
 }
+
+###
+
+# Get comment by id
+GET http://{{host}}/api/comments/{{createComment.response.body.id}} HTTP/1.1
+
+###
+
+# Delete a comment of another user (403)
+DELETE http://{{host}}/api/comments/{{createComment.response.body.id}}?userId={{otherUserId}} HTTP/1.1
+
+###
+
+# Delete own comment
+DELETE http://{{host}}/api/comments/{{createComment.response.body.id}}?userId={{userId}} HTTP/1.1

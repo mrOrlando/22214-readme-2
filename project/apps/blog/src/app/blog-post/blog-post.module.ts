@@ -9,5 +9,6 @@ import { BlogTagModule } from '../blog-tag/blog-tag.module';
   imports: [PrismaClientModule, BlogTagModule],
   providers: [BlogPostRepository, BlogPostService],
   controllers: [BlogPostController],
+  exports: [BlogPostService],
 })
 export class BlogPostModule {}

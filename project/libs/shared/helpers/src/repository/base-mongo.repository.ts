@@ -20,7 +20,10 @@ export abstract class BaseMongoRepository<
       return null;
     }
 
-    return this.createEntity(document.toObject({ versionKey: false }));
+    const entity = this.createEntity(document.toObject({ versionKey: false }));
+    entity.id = String(document._id);
+
+    return entity;
   }
 
   public async findById(id: EntityType['id']): Promise<EntityType | null> {

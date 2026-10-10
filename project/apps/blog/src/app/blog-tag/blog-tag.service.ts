@@ -1,16 +1,9 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { BlogTagRepository } from './blog-tag.repository';
 import { BlogTagEntity } from './blog-tag.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
-
-function normalizeTagTitle(title: string): string {
-  return title.trim().toLowerCase();
-}
+import { normalizeTagTitle, TAG_EXISTS_ERROR } from './blog-tag.constants';
 
 @Injectable()
 export class BlogTagService {
@@ -50,44 +43,37 @@ export class BlogTagService {
   }
 
   public async createTag(dto: CreateTagDto): Promise<BlogTagEntity> {
-    const title = normalizeTagTitle(dto.title);
-    const existingTag = (
-      await this.blogTagRepository.find({
-        title,
-      })
-    ).at(0);
+    await this.checkTitleIsFree(dto.title);
 
-    if (existingTag) {
-      throw new ConflictException('Tag with this title already exists');
-    }
-
-    const newTag = new BlogTagEntity({ title });
+    const newTag = new BlogTagEntity({ title: dto.title });
     await this.blogTagRepository.save(newTag);
 
     return newTag;
   }
 
   public async deleteTag(id: string): Promise<void> {
-    try {
-      await this.blogTagRepository.deleteById(id);
-    } catch {
-      throw new NotFoundException(`Tag with ID "${id}" not found`);
-    }
+    await this.blogTagRepository.findById(id);
+    await this.blogTagRepository.deleteById(id);
   }
 
   public async updateTag(
     id: string,
     dto: UpdateTagDto
   ): Promise<BlogTagEntity> {
-    const entity = new BlogTagEntity({
-      title: normalizeTagTitle(dto.title),
-    });
+    await this.blogTagRepository.findById(id);
+    await this.checkTitleIsFree(dto.title, id);
 
-    try {
-      const updatedTag = await this.blogTagRepository.update(id, entity);
-      return updatedTag;
-    } catch {
-      throw new NotFoundException(`Tag with ID "${id}" not found`);
+    return this.blogTagRepository.update(
+      id,
+      new BlogTagEntity({ title: dto.title })
+    );
+  }
+
+  private async checkTitleIsFree(title: string, ownId?: string): Promise<void> {
+    const existingTag = (await this.blogTagRepository.find({ title })).at(0);
+
+    if (existingTag && existingTag.id !== ownId) {
+      throw new ConflictException(TAG_EXISTS_ERROR);
     }
   }
 }

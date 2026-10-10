@@ -1,5 +1,4 @@
 import { Tag } from './tag.interface';
-import { Comment } from './comment.interface';
 import { PostType } from './post-type.enum';
 import { PostStatus } from './post-status.enum';
 
@@ -27,5 +26,6 @@ export interface Post extends PostContent {
   createdAt?: Date;
   updatedAt?: Date;
   userId: string;
-  comments: Comment[];
+  likesCount?: number;
+  commentsCount?: number;
 }

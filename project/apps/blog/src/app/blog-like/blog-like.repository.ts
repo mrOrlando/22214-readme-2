@@ -1,9 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import { PrismaClientService } from '@project/models';
 import { BasePostgresRepository } from '@project/helpers';
-import { BlogLikeEntity } from './blog-like.entity';
 import { Like } from '@project/types';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { LikeFilter, likeFilterToPrismaFilter } from './blog-like.filter';
+import { BlogLikeEntity } from './blog-like.entity';
 
 @Injectable()
 export class BlogLikeRepository extends BasePostgresRepository<
@@ -14,34 +13,15 @@ export class BlogLikeRepository extends BasePostgresRepository<
     super(client, BlogLikeEntity.fromObject);
   }
 
-  override async findById(id: string): Promise<BlogLikeEntity | null> {
+  public async findByPostAndUser(
+    postId: string,
+    userId: string
+  ): Promise<BlogLikeEntity | null> {
     const like = await this.client.like.findUnique({
-      where: { id },
+      where: { postId_userId: { postId, userId } },
     });
-
-    if (!like) {
-      throw new NotFoundException(`Like with id ${id} not found.`);
-    }
 
     return this.createEntityFromDocument(like);
-  }
-
-  public async find(filter?: LikeFilter): Promise<BlogLikeEntity[]> {
-    const likes = await this.client.like.findMany({
-      where: likeFilterToPrismaFilter(filter),
-    });
-
-    return likes
-      .map((like) => this.createEntityFromDocument(like))
-      .filter((like): like is BlogLikeEntity => like !== null);
-  }
-
-  public async postExists(postId: string): Promise<boolean> {
-    const count = await this.client.post.count({
-      where: { id: postId },
-    });
-
-    return count > 0;
   }
 
   override async save(entity: BlogLikeEntity): Promise<BlogLikeEntity> {
@@ -52,11 +32,7 @@ export class BlogLikeRepository extends BasePostgresRepository<
       },
     });
 
-    entity.id = newLike.id;
-    entity.createdAt = newLike.createdAt;
-    entity.updatedAt = newLike.updatedAt;
-
-    return entity;
+    return BlogLikeEntity.fromObject(newLike);
   }
 
   override async deleteById(id: string): Promise<void> {

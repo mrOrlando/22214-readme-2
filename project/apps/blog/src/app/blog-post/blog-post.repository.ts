@@ -1,9 +1,38 @@
+import { Injectable } from '@nestjs/common';
+import * as Prisma from '@project/models';
 import { PrismaClientService } from '@project/models';
 import { BasePostgresRepository } from '@project/helpers';
+import { PaginationResult, Post, PostStatus } from '@project/types';
 import { BlogPostEntity } from './blog-post.entity';
-import { Post } from '@project/types';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PostFilter, postFilterToPrismaFilter } from './blog-post.filter';
+import { BlogPostQuery } from './query';
+import { MAX_SEARCH_POST_COUNT, PostSortType } from './blog-post.constants';
+
+const POST_INCLUDE = {
+  tags: true,
+  _count: {
+    select: {
+      likes: true,
+      comments: true,
+    },
+  },
+} satisfies Prisma.PostInclude;
+
+type PostRecord = Prisma.PostGetPayload<{ include: typeof POST_INCLUDE }>;
+
+const POST_ORDER_BY: Record<
+  PostSortType,
+  Prisma.PostOrderByWithRelationInput[]
+> = {
+  [PostSortType.Date]: [{ publishedAt: 'desc' }],
+  [PostSortType.Likes]: [
+    { likes: { _count: 'desc' } },
+    { publishedAt: 'desc' },
+  ],
+  [PostSortType.Comments]: [
+    { comments: { _count: 'desc' } },
+    { publishedAt: 'desc' },
+  ],
+};
 
 @Injectable()
 export class BlogPostRepository extends BasePostgresRepository<
@@ -14,34 +43,95 @@ export class BlogPostRepository extends BasePostgresRepository<
     super(client, BlogPostEntity.fromObject);
   }
 
+  private createEntityFromRecord({
+    _count,
+    ...post
+  }: PostRecord): BlogPostEntity {
+    return BlogPostEntity.fromObject({
+      ...post,
+      likesCount: _count.likes,
+      commentsCount: _count.comments,
+    });
+  }
+
   override async findById(id: string): Promise<BlogPostEntity | null> {
     const post = await this.client.post.findUnique({
       where: { id },
-      include: {
-        tags: true,
-        comments: true,
-      },
+      include: POST_INCLUDE,
     });
 
-    if (!post) {
-      throw new NotFoundException(`Post with id ${id} not found.`);
-    }
-
-    return this.createEntityFromDocument(post);
+    return post ? this.createEntityFromRecord(post) : null;
   }
 
-  public async find(filter?: PostFilter): Promise<BlogPostEntity[]> {
+  public async find(
+    query: BlogPostQuery
+  ): Promise<PaginationResult<BlogPostEntity>> {
+    const where: Prisma.PostWhereInput = {
+      status: PostStatus.Published,
+      userId: query.userId,
+      type: query.type,
+      tags: query.tag ? { some: { title: query.tag } } : undefined,
+    };
+
+    const [posts, totalItems] = await Promise.all([
+      this.client.post.findMany({
+        where,
+        orderBy: POST_ORDER_BY[query.sortBy],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        include: POST_INCLUDE,
+      }),
+      this.client.post.count({ where }),
+    ]);
+
+    return {
+      entities: posts.map((post) => this.createEntityFromRecord(post)),
+      currentPage: query.page,
+      totalPages: Math.ceil(totalItems / query.limit),
+      itemsPerPage: query.limit,
+      totalItems,
+    };
+  }
+
+  public async findDrafts(userId: string): Promise<BlogPostEntity[]> {
     const posts = await this.client.post.findMany({
-      where: postFilterToPrismaFilter(filter),
-      include: {
-        tags: true,
-        comments: true,
+      where: {
+        status: PostStatus.Draft,
+        userId,
       },
+      orderBy: POST_ORDER_BY[PostSortType.Date],
+      include: POST_INCLUDE,
     });
 
-    return posts
-      .map((post) => this.createEntityFromDocument(post))
-      .filter((post): post is BlogPostEntity => post !== null);
+    return posts.map((post) => this.createEntityFromRecord(post));
+  }
+
+  public async searchByTitle(words: string[]): Promise<BlogPostEntity[]> {
+    const posts = await this.client.post.findMany({
+      where: {
+        status: PostStatus.Published,
+        OR: words.map((word) => ({
+          title: { contains: word, mode: 'insensitive' },
+        })),
+      },
+      orderBy: POST_ORDER_BY[PostSortType.Date],
+      take: MAX_SEARCH_POST_COUNT,
+      include: POST_INCLUDE,
+    });
+
+    return posts.map((post) => this.createEntityFromRecord(post));
+  }
+
+  public async findRepost(
+    userId: string,
+    originalPostId: string
+  ): Promise<BlogPostEntity | null> {
+    const post = await this.client.post.findUnique({
+      where: { userId_originalPostId: { userId, originalPostId } },
+      include: POST_INCLUDE,
+    });
+
+    return post ? this.createEntityFromRecord(post) : null;
   }
 
   override async save(entity: BlogPostEntity): Promise<BlogPostEntity> {
@@ -59,13 +149,10 @@ export class BlogPostRepository extends BasePostgresRepository<
           connect: entity.tags.map((tag) => ({ id: tag.id })),
         },
       },
-      include: {
-        tags: true,
-        comments: true,
-      },
+      include: POST_INCLUDE,
     });
 
-    return entity.populate(newPost);
+    return this.createEntityFromRecord(newPost);
   }
 
   override async update(
@@ -82,13 +169,10 @@ export class BlogPostRepository extends BasePostgresRepository<
           set: entity.tags.map((tag) => ({ id: tag.id })),
         },
       },
-      include: {
-        tags: true,
-        comments: true,
-      },
+      include: POST_INCLUDE,
     });
 
-    return entity.populate(updatedPost);
+    return this.createEntityFromRecord(updatedPost);
   }
 
   override async deleteById(id: string): Promise<void> {

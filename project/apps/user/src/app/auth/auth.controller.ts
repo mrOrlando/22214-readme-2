@@ -1,20 +1,44 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { fillDto, MongoIdValidationPipe } from '@project/helpers';
 import { AuthService } from './auth.service';
-import { CreateUserDto, LoginUserDto } from './dto';
-import { fillDto } from '@project/helpers';
-import { UserRdo } from './rdo';
-import { LoggedUserRdo } from './rdo';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ChangePasswordDto, CreateUserDto, LoginUserDto } from './dto';
+import { LoggedUserRdo, TokenPayloadRdo, TokenRdo, UserRdo } from './rdo';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import type { RequestWithTokenPayload } from './request-with-token-payload.interface';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'The user has been successfully created.',
     type: UserRdo,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation failed.',
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
@@ -26,36 +50,124 @@ export class AuthController {
     return fillDto(UserRdo, newUser.toPOJO());
   }
 
+  @ApiOperation({ summary: 'Log in and get a pair of tokens' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The user has been successfully logged in.',
     type: LoggedUserRdo,
   })
   @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation failed.',
+  })
+  @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
-    description: 'The user has not been logged in.',
+    description: 'The password is wrong.',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'The user with this email not found.',
   })
+  @HttpCode(HttpStatus.OK)
   @Post('login')
   public async login(@Body() dto: LoginUserDto): Promise<LoggedUserRdo> {
     const verifiedUser = await this.authService.verifyUser(dto);
-    return fillDto(LoggedUserRdo, verifiedUser);
+    const token = await this.authService.createUserToken(verifiedUser);
+
+    return fillDto(LoggedUserRdo, { ...verifiedUser.toPOJO(), ...token });
   }
 
+  @ApiOperation({ summary: 'Get a new pair of tokens by a refresh token' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'A new pair of tokens.',
+    type: TokenRdo,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'The refresh token is invalid, expired or already used.',
+  })
+  @UseGuards(JwtRefreshGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  public async refreshToken(
+    @Req() { user }: RequestWithTokenPayload
+  ): Promise<TokenRdo> {
+    const token = await this.authService.createToken(user);
+    return fillDto(TokenRdo, token);
+  }
+
+  @ApiOperation({ summary: 'Check an access token' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The access token payload.',
+    type: TokenPayloadRdo,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'The access token is invalid or expired.',
+  })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('check')
+  public async checkToken(
+    @Req() { user }: RequestWithTokenPayload
+  ): Promise<TokenPayloadRdo> {
+    return fillDto(TokenPayloadRdo, user);
+  }
+
+  @ApiOperation({ summary: 'Change the password of the current user' })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'The password has been successfully changed.',
+    type: UserRdo,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation failed.',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'The user is not authorized or the current password is wrong.',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Patch('password')
+  public async changePassword(
+    @Req() { user }: RequestWithTokenPayload,
+    @Body() dto: ChangePasswordDto
+  ): Promise<UserRdo> {
+    const updatedUser = await this.authService.changePassword(user.sub, dto);
+    return fillDto(UserRdo, updatedUser.toPOJO());
+  }
+
+  @ApiOperation({ summary: 'Get user details' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'User ID (MongoDB ObjectId)' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The user has been successfully found.',
     type: UserRdo,
   })
   @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'The user ID is not valid.',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'The user is not authorized.',
+  })
+  @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'The user with this ID not found.',
   })
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  public async show(@Param('id') id: string): Promise<UserRdo> {
+  public async show(
+    @Param('id', MongoIdValidationPipe) id: string
+  ): Promise<UserRdo> {
     const existingUser = await this.authService.getUser(id);
     return fillDto(UserRdo, existingUser.toPOJO());
   }

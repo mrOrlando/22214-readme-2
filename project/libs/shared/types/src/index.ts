@@ -7,3 +7,8 @@ export * from './post.interface';
 export * from './like.interface';
 export * from './post-type.enum';
 export * from './post-status.enum';
+export * from './token-payload.interface';
+export * from './refresh-token-payload.interface';
+export * from './token.interface';
+export * from './jwt-token.interface';
+export * from './pagination.interface';
