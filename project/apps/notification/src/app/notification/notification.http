@@ -1,0 +1,7 @@
+@hostname=localhost
+@port=3334
+@host={{hostname}}:{{port}}
+
+# Send new publications since the last mailing to all subscribers
+# (call it from cron, see Workflow.md)
+POST http://{{host}}/api/notifications/send HTTP/1.1

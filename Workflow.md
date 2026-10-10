@@ -58,6 +58,7 @@ npm install
 |--------|--------|-------------|
 | **blog** | `npx nx run blog:serve` | API: [http://localhost:3000/api](http://localhost:3000/api) (`GET`). Порт: **`PORT`**, по умолчанию **3000**. Префикс маршрутов: **`/api`**. Swagger: [http://localhost:3000/spec](http://localhost:3000/spec). После `db:generate` запускайте с **`--skip-nx-cache`**, иначе Nx может взять сборку со старым Prisma Client. |
 | **@project/user** | `npx nx run @project/user:serve` | Swagger: **`/spec`** — например [http://localhost:3333/spec](http://localhost:3333/spec) (порт из **`apps/user/user.env`**, в примере **3333**). Если не открывается — попробуйте **`/api/spec`**. |
+| **notification** | `npx nx run notification:serve` | Swagger: [http://localhost:3334/spec](http://localhost:3334/spec) (порт из **`apps/notification/notification.env`**). Сервис слушает очередь RabbitMQ и содержит один HTTP-обработчик рассылки: `POST /api/notifications/send`. |
 
 Точный URL после старта смотрите в логе приложения.
 
@@ -97,6 +98,37 @@ npm install
 | mongo-express | [http://localhost:8081](http://localhost:8081) |
 
 Вход в **веб-интерфейс** mongo-express (окно логина в браузере): по умолчанию у образа обычно **`admin`** / **`pass`**. Учётка **`admin`** / **`test`** в `docker-compose.yml` относится к **подключению к MongoDB**, а не к этой странице.
+
+### Notification — RabbitMQ, MongoDB, fake SMTP
+
+| | |
+|--|--|
+| Файлы | **`apps/notification/notification.env`** (из **`notification.env.example`**) |
+| Запуск | `cd apps/notification` → при необходимости `cp notification.env.example notification.env` → `docker compose up -d` |
+| RabbitMQ | AMQP `localhost:5672`, веб-интерфейс [http://localhost:15672](http://localhost:15672) (`admin` / `test`) |
+| MongoDB | `localhost:27018`, база **`readme-notification`** (порт отличается от user: 27017) |
+| Fake SMTP (MailDev) | SMTP `localhost:1025`, веб-интерфейс с полученными письмами [http://localhost:1080](http://localhost:1080) |
+
+**Как это работает.** Сервисы общаются с notification асинхронно через очередь **`RABBIT_QUEUE`** (по умолчанию `readme.notification`):
+
+| Событие | Кто публикует | Что делает notification |
+|---------|---------------|-------------------------|
+| `user.registered` | user — после регистрации | сохраняет email получателя (повтор события ничего не меняет) |
+| `post.published` | blog — при создании, репосте или публикации черновика | кладёт публикацию в список неотправленных (черновики не попадают) |
+
+Публикация события не ломает основную операцию: если RabbitMQ недоступен, ошибка только пишется в лог.
+
+**Рассылка.** `POST http://localhost:3334/api/notifications/send` отправляет всем подписчикам одно письмо со списком публикаций, появившихся с прошлой рассылки. Публикации помечаются отправленными, только если ушли все письма; при ошибке SMTP повторный вызов отправит их заново. Если новых публикаций нет, письма не уходят. Сам сервис ничего не планирует: запускать обработчик должен внешний планировщик, например `cron` (раз в час):
+
+```bash
+0 * * * * curl -s -X POST http://localhost:3334/api/notifications/send
+```
+
+**Переменные** в `notification.env`: `MONGO_*`, `RABBIT_HOST`, `RABBIT_PORT`, `RABBIT_USER`, `RABBIT_PASSWORD`, `RABBIT_QUEUE`, `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT`, `MAIL_USER_NAME`, `MAIL_USER_PASSWORD`, `MAIL_FROM`, `PORT`. В **`user.env`** и **`blog.env`** нужны **`RABBIT_*`** (те же значения), иначе сервисы не стартуют.
+
+**Ручная проверка:** зарегистрируйте пользователя (`apps/user/src/app/auth/auth.http`), создайте пост (`apps/blog/src/app/blog-post/blog-post.http`), вызовите `apps/notification/src/app/notification/notification.http` и откройте письмо в MailDev.
+
+---
 
 ---
 

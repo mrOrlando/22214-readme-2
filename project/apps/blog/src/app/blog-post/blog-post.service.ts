@@ -4,7 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PaginationResult, PostContent } from '@project/types';
+import { PaginationResult, PostContent, RabbitEvent } from '@project/types';
+import { RabbitPublisher } from '@project/helpers';
 import { BlogPostRepository } from './blog-post.repository';
 import { BlogPostEntity } from './blog-post.entity';
 import { BlogTagService } from '../blog-tag/blog-tag.service';
@@ -21,7 +22,8 @@ import {
 export class BlogPostService {
   constructor(
     private readonly blogPostRepository: BlogPostRepository,
-    private readonly blogTagService: BlogTagService
+    private readonly blogTagService: BlogTagService,
+    private readonly rabbitPublisher: RabbitPublisher
   ) {}
 
   public async getPost(id: string): Promise<BlogPostEntity> {
@@ -65,7 +67,10 @@ export class BlogPostService {
     const tags = await this.blogTagService.getOrCreateTagsByTitles(dto.tags);
     const newPost = BlogPostEntity.fromDto(dto, tags);
 
-    return this.blogPostRepository.save(newPost);
+    const savedPost = await this.blogPostRepository.save(newPost);
+    await this.notifyAboutPublication(savedPost);
+
+    return savedPost;
   }
 
   public async repostPost(id: string, userId: string): Promise<BlogPostEntity> {
@@ -80,7 +85,10 @@ export class BlogPostService {
       throw new ConflictException(POST_ALREADY_REPOSTED_ERROR);
     }
 
-    return this.blogPostRepository.save(repost);
+    const savedRepost = await this.blogPostRepository.save(repost);
+    await this.notifyAboutPublication(savedRepost);
+
+    return savedRepost;
   }
 
   public async deletePost(id: string, userId: string): Promise<void> {
@@ -93,6 +101,7 @@ export class BlogPostService {
     dto: UpdatePostDto
   ): Promise<BlogPostEntity> {
     const existingPost = await this.getOwnPost(id, dto.userId);
+    const wasPublished = existingPost.isPublished();
 
     if (dto.tags) {
       existingPost.tags = await this.blogTagService.getOrCreateTagsByTitles(
@@ -111,7 +120,27 @@ export class BlogPostService {
     }
     existingPost.populateContent(content);
 
-    return this.blogPostRepository.update(id, existingPost);
+    const updatedPost = await this.blogPostRepository.update(id, existingPost);
+    if (!wasPublished) {
+      await this.notifyAboutPublication(updatedPost);
+    }
+
+    return updatedPost;
+  }
+
+  // Only published posts are announced; a draft is announced when published
+  private async notifyAboutPublication(post: BlogPostEntity): Promise<void> {
+    if (!post.isPublished()) {
+      return;
+    }
+
+    await this.rabbitPublisher.publish(RabbitEvent.PostPublished, {
+      postId: `${post.id}`,
+      userId: post.userId,
+      type: post.type,
+      title: post.getDisplayTitle(),
+      publishedAt: `${post.publishedAt?.toISOString()}`,
+    });
   }
 
   private async getOwnPost(

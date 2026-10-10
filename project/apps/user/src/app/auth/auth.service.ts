@@ -8,12 +8,14 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
+  RabbitEvent,
   RefreshTokenPayload,
   Token,
   TokenPayload,
   User,
   UserRole,
 } from '@project/types';
+import { RabbitPublisher } from '@project/helpers';
 import { UserRepository } from '../user/user.repository';
 import { UserEntity } from '../user/user.entity';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
@@ -32,7 +34,8 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly refreshTokenService: RefreshTokenService
+    private readonly refreshTokenService: RefreshTokenService,
+    private readonly rabbitPublisher: RabbitPublisher
   ) {}
 
   public async register(dto: CreateUserDto) {
@@ -48,7 +51,16 @@ export class AuthService {
       passwordHash: '',
     }).setPassword(dto.password);
 
-    return this.userRepository.save(user);
+    const newUser = await this.userRepository.save(user);
+
+    // The notification service keeps registered users as mail recipients
+    await this.rabbitPublisher.publish(RabbitEvent.UserRegistered, {
+      userId: `${newUser.id}`,
+      email: newUser.email,
+      name: newUser.name,
+    });
+
+    return newUser;
   }
 
   public async verifyUser(dto: LoginUserDto) {

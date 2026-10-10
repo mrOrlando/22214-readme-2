@@ -4,13 +4,16 @@
   "include": [],
   "references": [
     {
-      "path": "../../libs/shared/helpers"
+      "path": "../../libs/shared/blog/models"
     },
     {
       "path": "../../libs/shared/types"
     },
     {
-      "path": "../../libs/shared/blog/models"
+      "path": "../../libs/shared/helpers"
+    },
+    {
+      "path": "../../libs/shared/config"
     },
     {
       "path": "./tsconfig.app.json"

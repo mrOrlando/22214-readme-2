@@ -3,3 +3,5 @@
 /coverage
 /.nx/cache
 /.nx/workspace-data
+# Mail templates: whitespace is significant in the plain text letter
+*.hbs
