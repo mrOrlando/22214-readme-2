@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import appConfig from './app.config';
 import mongoConfig from './mongo.config';
 import jwtConfig from './jwt.config';
+import rabbitConfig from './rabbit.config';
 
 const ENV_USER_FILE_PATHS = [
   'apps/user/user.env',
@@ -22,7 +23,7 @@ export class ConfigUserModule {
         ConfigModule.forRoot({
           isGlobal: true,
           cache: true,
-          load: [appConfig, mongoConfig, jwtConfig],
+          load: [appConfig, mongoConfig, jwtConfig, rabbitConfig],
           envFilePath: ENV_USER_FILE_PATHS,
         }),
       ],

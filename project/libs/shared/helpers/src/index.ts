@@ -6,3 +6,5 @@ export * from './repository/base-postgres.repository';
 export * from './fillDto';
 export * from './pipes/mongo-id-validation.pipe';
 export * from './getMongoConnectionString';
+export * from './rabbit/rabbit.constants';
+export * from './rabbit/rabbit-publisher';
