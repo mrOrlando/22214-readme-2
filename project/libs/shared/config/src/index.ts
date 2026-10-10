@@ -1,5 +1,6 @@
 export * from './config-user.module';
 export * from './config-notification.module';
+export * from './config-blog.module';
 export { default as appConfig } from './app.config';
 export { default as mongoConfig } from './mongo.config';
 export { default as jwtConfig } from './jwt.config';

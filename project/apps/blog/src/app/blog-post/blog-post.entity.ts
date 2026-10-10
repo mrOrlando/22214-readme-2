@@ -72,6 +72,21 @@ export class BlogPostEntity implements Post, Entity<string, Post> {
     };
   }
 
+  // A short text that describes the post in notifications
+  public getDisplayTitle(): string {
+    const MAX_LENGTH = 100;
+    const title =
+      this.title ||
+      this.quoteText ||
+      this.linkDescription ||
+      this.linkUrl ||
+      this.videoUrl ||
+      this.photo ||
+      this.type;
+
+    return title.slice(0, MAX_LENGTH);
+  }
+
   public isPublished(): boolean {
     return this.status === PostStatus.Published;
   }
