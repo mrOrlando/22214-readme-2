@@ -5,10 +5,8 @@ services:
     image: mongo
     restart: always
     container_name: readme.notification.mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: test
-      MONGO_INITDB_DATABASE: readme-notification
+    env_file:
+      - notification.env
     ports:
       - 27018:27017
     volumes:
@@ -25,9 +23,8 @@ services:
     image: rabbitmq:4-management
     restart: always
     container_name: readme.notification.rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: test
+    env_file:
+      - notification.env
     ports:
       - 5672:5672
       - 15672:15672

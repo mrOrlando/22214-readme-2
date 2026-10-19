@@ -72,7 +72,7 @@ npm install
 
 1. Рядом с нужным **`docker-compose.yml`** должен быть **заполненный** env-файл; если его нет — скопируйте **`*.env.example`** и отредактируйте.
 2. **Blog:** `DATABASE_URL` в **`project/.env`** должен совпадать с пользователем, паролем, хостом, портом и именем БД из **`apps/blog/blog.env`**.
-3. **User:** **`apps/user/user.env`** должен совпадать с **`docker-compose.yml`** в `apps/user` (по умолчанию как в **`user.env.example`**: `admin` / `test`, база **`readme-users`**).
+3. **User:** учётные данные MongoDB задаются в **`apps/user/user.env`** (по умолчанию как в **`user.env.example`**: `admin` / `test`, база **`readme-users`**). Docker подхватывает их через `env_file`, поэтому **`MONGO_USER`/`MONGO_PASSWORD`** должны совпадать с **`MONGO_INITDB_ROOT_*`** и **`ME_CONFIG_MONGODB_ADMIN*`** в том же файле. Для notification то же самое: **`MONGO_*`** и **`RABBIT_*`** синхронизируйте с **`MONGO_INITDB_*`** и **`RABBITMQ_DEFAULT_*`** в **`notification.env`**.
    В **`user.env`** также нужны переменные JWT (см. **`user.env.example`**): **`JWT_ACCESS_TOKEN_SECRET`**, **`JWT_ACCESS_TOKEN_EXPIRES_IN`**, **`JWT_REFRESH_TOKEN_SECRET`**, **`JWT_REFRESH_TOKEN_EXPIRES_IN`**. Без них сервис не стартует.
 
 После смены учётных данных может понадобиться пересоздать контейнеры и тома (см. материалы курса).
@@ -97,7 +97,7 @@ npm install
 | MongoDB | `localhost:27017` |
 | mongo-express | [http://localhost:8081](http://localhost:8081) |
 
-Вход в **веб-интерфейс** mongo-express (окно логина в браузере): по умолчанию у образа обычно **`admin`** / **`pass`**. Учётка **`admin`** / **`test`** в `docker-compose.yml` относится к **подключению к MongoDB**, а не к этой странице.
+Вход в **веб-интерфейс** mongo-express (окно логина в браузере): по умолчанию у образа обычно **`admin`** / **`pass`**. Учётка **`admin`** / **`test`** в `user.env` относится к **подключению к MongoDB**, а не к этой странице.
 
 ### Notification — RabbitMQ, MongoDB, fake SMTP
 
