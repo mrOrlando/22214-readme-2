@@ -60,6 +60,7 @@ npm install
 | **@project/user** | `npx nx run @project/user:serve` | Swagger: **`/spec`** — например [http://localhost:3333/spec](http://localhost:3333/spec) (порт из **`apps/user/user.env`**, в примере **3333**). Если не открывается — попробуйте **`/api/spec`**. |
 | **notification** | `npx nx run notification:serve` | Swagger: [http://localhost:3334/spec](http://localhost:3334/spec) (порт из **`apps/notification/notification.env`**). Сервис слушает очередь RabbitMQ и содержит один HTTP-обработчик рассылки: `POST /api/notifications/send`. |
 | **file-server** | `npx nx run file-server:serve` | Swagger: [http://localhost:3335/spec](http://localhost:3335/spec) (порт из **`apps/file-server/file-server.env`**). Загрузка аватара (до 500 КБ) и фото поста (до 1 МБ), только jpg и png; тип проверяется по содержимому файла. Файлы лежат в **`UPLOAD_DIRECTORY`** (по умолчанию `apps/file-server/uploads`, в git не попадает). |
+| **api-gateway** | `npx nx run api-gateway:serve` | Единая точка входа для фронтенда. Swagger: [http://localhost:4000/spec](http://localhost:4000/spec) (порт из **`apps/api-gateway/api-gateway.env`**). Адреса сервисов, секрет access-токена (тот же, что в **`user.env`**) и разрешённые адреса фронтенда для CORS (**`CORS_ORIGINS`**) задаются в этом же env-файле (образец — **`api-gateway.env.example`**). Без заполненных переменных шлюз не стартует. |
 
 Точный URL после старта смотрите в логе приложения.
 
