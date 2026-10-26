@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigApiGatewayModule } from '@project/config';
 
 @Module({
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ConfigApiGatewayModule.register()],
 })
 export class AppModule {}
