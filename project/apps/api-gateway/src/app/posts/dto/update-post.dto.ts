@@ -49,11 +49,14 @@ export class UpdatePostDto {
   @OptionalText('Author of the quote ("quote" posts)', 'Edsger Dijkstra')
   public quoteAuthor?: string;
 
-  @OptionalText(
-    'Path of a photo ("photo" posts)',
-    '/api/files/5b8c93e4-92db-43c9-be4e-d6f94f08cda2.png'
-  )
-  public photo?: string;
+  // The file is read by the controller; the property only documents the field
+  @ApiPropertyOptional({
+    description:
+      'New photo of a "photo" post: a jpg or png image up to 1 MB, it is sent as multipart/form-data',
+    type: 'string',
+    format: 'binary',
+  })
+  public photo?: unknown;
 
   @OptionalText('URL ("link" posts)', 'https://docs.nestjs.com')
   public linkUrl?: string;

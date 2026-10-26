@@ -56,11 +56,14 @@ export class CreatePostDto {
   )
   public quoteAuthor?: string;
 
-  @OptionalText(
-    'Path of an uploaded photo. Required for "photo" posts',
-    '/api/files/5b8c93e4-92db-43c9-be4e-d6f94f08cda2.png'
-  )
-  public photo?: string;
+  // The file is read by the controller; the property only documents the field
+  @ApiPropertyOptional({
+    description:
+      'Photo: a jpg or png image up to 1 MB. Required for "photo" posts, it is sent as multipart/form-data',
+    type: 'string',
+    format: 'binary',
+  })
+  public photo?: unknown;
 
   @OptionalText('URL. Required for "link" posts', 'https://docs.nestjs.com')
   public linkUrl?: string;

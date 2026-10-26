@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PostStatus } from '@project/types';
+import { PostStatus, PostType } from '@project/types';
+import { CreatePostDto, UpdatePostDto } from './dto';
 import { BlogClient } from '../clients/blog.client';
 import { PostResponse } from '../clients/types';
+import { FilesService } from '../files/files.service';
 import { AuthorsService } from '../users/authors.service';
 
 const POST_NOT_FOUND_ERROR = 'Post not found';
@@ -12,7 +14,8 @@ const POST_NOT_FOUND_ERROR = 'Post not found';
 export class PostsService {
   constructor(
     private readonly blogClient: BlogClient,
-    private readonly authorsService: AuthorsService
+    private readonly authorsService: AuthorsService,
+    private readonly filesService: FilesService
   ) {}
 
   public async getPosts(query: object) {
@@ -38,13 +41,40 @@ export class PostsService {
     return (await this.withAuthors([post]))[0];
   }
 
-  public async createPost(userId: string, dto: object) {
-    const post = await this.blogClient.createPost({ ...dto, userId });
+  // The photo of a "photo" post is uploaded to the file server and its path
+  // is saved with the post. Files sent with posts of other types are ignored.
+  public async createPost(
+    userId: string,
+    dto: CreatePostDto,
+    photo?: Express.Multer.File
+  ) {
+    const post = await this.filesService.runWithUpload(
+      dto.type === PostType.Photo ? photo : undefined,
+      'photo',
+      (photoPath) =>
+        this.blogClient.createPost({ ...dto, photo: photoPath, userId })
+    );
+
     return (await this.withAuthors([post]))[0];
   }
 
-  public async updatePost(id: string, userId: string, dto: object) {
-    const post = await this.blogClient.updatePost(id, { ...dto, userId });
+  public async updatePost(
+    id: string,
+    userId: string,
+    dto: UpdatePostDto,
+    photo?: Express.Multer.File
+  ) {
+    // Only a "photo" post has a photo to replace
+    const isPhotoPost =
+      photo && (await this.blogClient.getPost(id)).type === PostType.Photo;
+
+    const post = await this.filesService.runWithUpload(
+      isPhotoPost ? photo : undefined,
+      'photo',
+      (photoPath) =>
+        this.blogClient.updatePost(id, { ...dto, photo: photoPath, userId })
+    );
+
     return (await this.withAuthors([post]))[0];
   }
 

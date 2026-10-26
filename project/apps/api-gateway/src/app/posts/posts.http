@@ -89,6 +89,28 @@ Content-Type: application/json
 
 ###
 
+# Create a photo post (multipart/form-data): a jpg or png image up to 1 MB
+POST http://{{host}}/api/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="type"
+
+photo
+--boundary
+Content-Disposition: form-data; name="tags"
+
+travel
+--boundary
+Content-Disposition: form-data; name="photo"; filename="barbershop.png"
+Content-Type: image/png
+
+< ../../../../../../markup/img/barbershop.png
+--boundary--
+
+###
+
 # Create a post with invalid data (400: all errors at once)
 POST http://{{host}}/api/posts HTTP/1.1
 Authorization: Bearer {{login.response.body.accessToken}}

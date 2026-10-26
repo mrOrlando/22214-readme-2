@@ -10,10 +10,14 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -22,6 +26,7 @@ import {
 import { fillDto } from '@project/helpers';
 import type { TokenPayload } from '@project/types';
 import { CurrentUser } from '../auth/decorators';
+import { MAX_PHOTO_SIZE } from '../files/files.constants';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import {
@@ -32,6 +37,10 @@ import {
 } from './dto';
 import { PostRdo, PostsWithPaginationRdo } from './rdo';
 import { PostsService } from './posts.service';
+
+const PHOTO_UPLOAD = FileInterceptor('photo', {
+  limits: { files: 1, fileSize: MAX_PHOTO_SIZE },
+});
 
 const POST_ID = { name: 'id', description: 'Post ID (UUID)' };
 const UNAUTHORIZED = {
@@ -120,23 +129,30 @@ export class PostsController {
 
   @ApiOperation({
     summary:
-      'Create a post. The author is the current user; required fields depend on the type of the post',
+      'Create a post. The author is the current user; required fields depend on the type of the post. A "photo" post is sent as multipart/form-data with the image in the "photo" field',
   })
+  @ApiConsumes('application/json', 'multipart/form-data')
   @ApiBearerAuth()
   @ApiResponse({ status: HttpStatus.CREATED, type: PostRdo })
   @ApiResponse(BAD_REQUEST)
   @ApiResponse(UNAUTHORIZED)
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(PHOTO_UPLOAD)
   @Post('/')
   public async create(
     @CurrentUser() { sub }: TokenPayload,
-    @Body() dto: CreatePostDto
+    @Body() dto: CreatePostDto,
+    @UploadedFile() photo?: Express.Multer.File
   ): Promise<PostRdo> {
-    const post = await this.postsService.createPost(sub, dto);
+    const post = await this.postsService.createPost(sub, dto, photo);
     return fillDto(PostRdo, post);
   }
 
-  @ApiOperation({ summary: 'Update an own post' })
+  @ApiOperation({
+    summary:
+      'Update an own post. The photo of a "photo" post is replaced with the image in the "photo" field of a multipart/form-data request',
+  })
+  @ApiConsumes('application/json', 'multipart/form-data')
   @ApiBearerAuth()
   @ApiParam(POST_ID)
   @ApiResponse({ status: HttpStatus.OK, type: PostRdo })
@@ -145,13 +161,15 @@ export class PostsController {
   @ApiResponse(FORBIDDEN)
   @ApiResponse(NOT_FOUND)
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(PHOTO_UPLOAD)
   @Patch('/:id')
   public async update(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() { sub }: TokenPayload,
-    @Body() dto: UpdatePostDto
+    @Body() dto: UpdatePostDto,
+    @UploadedFile() photo?: Express.Multer.File
   ): Promise<PostRdo> {
-    const post = await this.postsService.updatePost(id, sub, dto);
+    const post = await this.postsService.updatePost(id, sub, dto, photo);
     return fillDto(PostRdo, post);
   }
 
