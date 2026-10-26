@@ -1,0 +1,52 @@
+@hostname=localhost
+@port=3335
+@host={{hostname}}:{{port}}
+
+# Upload an avatar (jpg or png, up to 500 KB)
+# @name uploadAvatar
+POST http://{{host}}/api/files/avatar HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="cat.jpg"
+Content-Type: image/jpeg
+
+< ../../../../../../markup/img/cat.jpg
+--boundary--
+
+###
+
+# Upload a photo of a post (jpg or png, up to 1 MB)
+# @name uploadPhoto
+POST http://{{host}}/api/files/photo HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="barbershop.png"
+Content-Type: image/png
+
+< ../../../../../../markup/img/barbershop.png
+--boundary--
+
+###
+
+# Upload a request without a file (400)
+POST http://{{host}}/api/files/photo HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary--
+
+###
+
+# Download a file
+GET http://{{host}}/api/files/{{uploadPhoto.response.body.id}} HTTP/1.1
+
+###
+
+# Download a file with an invalid ID (400)
+GET http://{{host}}/api/files/..%2F..%2Fetc%2Fpasswd HTTP/1.1
+
+###
+
+# Delete a file
+DELETE http://{{host}}/api/files/{{uploadPhoto.response.body.id}} HTTP/1.1
