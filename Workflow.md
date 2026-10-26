@@ -59,6 +59,7 @@ npm install
 | **blog** | `npx nx run blog:serve` | API: [http://localhost:3000/api](http://localhost:3000/api) (`GET`). Порт: **`PORT`**, по умолчанию **3000**. Префикс маршрутов: **`/api`**. Swagger: [http://localhost:3000/spec](http://localhost:3000/spec). После `db:generate` запускайте с **`--skip-nx-cache`**, иначе Nx может взять сборку со старым Prisma Client. |
 | **@project/user** | `npx nx run @project/user:serve` | Swagger: **`/spec`** — например [http://localhost:3333/spec](http://localhost:3333/spec) (порт из **`apps/user/user.env`**, в примере **3333**). Если не открывается — попробуйте **`/api/spec`**. |
 | **notification** | `npx nx run notification:serve` | Swagger: [http://localhost:3334/spec](http://localhost:3334/spec) (порт из **`apps/notification/notification.env`**). Сервис слушает очередь RabbitMQ и содержит один HTTP-обработчик рассылки: `POST /api/notifications/send`. |
+| **file-server** | `npx nx run file-server:serve` | Swagger: [http://localhost:3335/spec](http://localhost:3335/spec) (порт из **`apps/file-server/file-server.env`**). Загрузка аватара (до 500 КБ) и фото поста (до 1 МБ), только jpg и png; тип проверяется по содержимому файла. Файлы лежат в **`UPLOAD_DIRECTORY`** (по умолчанию `apps/file-server/uploads`, в git не попадает). |
 
 Точный URL после старта смотрите в логе приложения.
 
@@ -127,6 +128,21 @@ npm install
 **Переменные** в `notification.env`: `MONGO_*`, `RABBIT_HOST`, `RABBIT_PORT`, `RABBIT_USER`, `RABBIT_PASSWORD`, `RABBIT_QUEUE`, `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT`, `MAIL_USER_NAME`, `MAIL_USER_PASSWORD`, `MAIL_FROM`, `PORT`. В **`user.env`** и **`blog.env`** нужны **`RABBIT_*`** (те же значения), иначе сервисы не стартуют.
 
 **Ручная проверка:** зарегистрируйте пользователя (`apps/user/src/app/auth/auth.http`), создайте пост (`apps/blog/src/app/blog-post/blog-post.http`), вызовите `apps/notification/src/app/notification/notification.http` и откройте письмо в MailDev.
+
+---
+
+### User — подписки и данные пользователей
+
+Эндпоинты сервиса user (примеры в `apps/user/src/app/user/user.http`):
+
+| Запрос | Что делает |
+|--------|-----------|
+| `GET /api/users?ids=a,b` | имя и аватар нескольких пользователей (до 100), например авторов постов |
+| `GET /api/users/:id` | дата регистрации и число подписчиков; число публикаций хранит blog, его добавляет API Gateway (`GET /api/posts?userId=…`, поле `totalItems`) |
+| `POST` и `DELETE /api/users/:id/subscription` | подписаться и отписаться (нужен access-токен; на себя подписаться нельзя) |
+| `GET /api/users/me/subscriptions` | id авторов, на которых подписан пользователь |
+
+Лента строится в API Gateway: id подписок из user плюс свой id передаются в blog как `GET /api/posts?userIds=a,b,c`. Посты, которые лайкнул пользователь: `GET /api/posts?likedBy=<id>`. Аватар при регистрации передаётся путём файла (`avatar`), который вернул file-server.
 
 ---
 
