@@ -49,6 +49,7 @@ export class AuthService {
       email: dto.email,
       name: dto.name,
       role: UserRole.User,
+      avatar: dto.avatar ?? null,
       passwordHash: '',
     }).setPassword(dto.password);
 

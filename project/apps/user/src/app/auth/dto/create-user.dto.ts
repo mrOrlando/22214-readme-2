@@ -1,6 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Length } from 'class-validator';
-import { UserNameLength, UserPasswordLength } from '../auth.constants';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Length,
+  MaxLength,
+} from 'class-validator';
+import {
+  USER_AVATAR_MAX_LENGTH,
+  UserNameLength,
+  UserPasswordLength,
+} from '../auth.constants';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -29,4 +39,14 @@ export class CreateUserDto {
   @IsString()
   @Length(UserPasswordLength.Min, UserPasswordLength.Max)
   public password!: string;
+
+  @ApiProperty({
+    description: 'Path of the avatar uploaded to the file server',
+    example: '/api/files/5b8c93e4-92db-43c9-be4e-d6f94f08cda2.png',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(USER_AVATAR_MAX_LENGTH)
+  public avatar?: string;
 }

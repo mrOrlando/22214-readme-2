@@ -16,3 +16,5 @@ export const UserPasswordLength = {
   Min: 6,
   Max: 12,
 } as const;
+
+export const USER_AVATAR_MAX_LENGTH = 255;

@@ -22,4 +22,13 @@ export class UserRdo {
   })
   @Expose()
   public email!: string;
+
+  @ApiProperty({
+    description: 'Path of the avatar on the file server',
+    example: '/api/files/5b8c93e4-92db-43c9-be4e-d6f94f08cda2.png',
+    nullable: true,
+    type: String,
+  })
+  @Expose()
+  public avatar!: string | null;
 }
