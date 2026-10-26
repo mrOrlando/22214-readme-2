@@ -30,6 +30,16 @@ GET http://{{host}}/api/posts?userId={{userId}}&type=text&tag=books HTTP/1.1
 
 ###
 
+# Posts of several authors (feed of a user)
+GET http://{{host}}/api/posts?userIds={{userId}},{{otherUserId}} HTTP/1.1
+
+###
+
+# Posts liked by a user
+GET http://{{host}}/api/posts?likedBy={{otherUserId}} HTTP/1.1
+
+###
+
 # Invalid query parameters (400)
 GET http://{{host}}/api/posts?limit=100&page=0&sortBy=rating HTTP/1.1
 
