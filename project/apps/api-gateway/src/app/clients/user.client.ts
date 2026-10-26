@@ -32,6 +32,10 @@ export class UserClient extends ServiceClient {
     });
   }
 
+  public getUser(accessToken: string, id: string): Promise<UserResponse> {
+    return this.request('GET', `/auth/${id}`, { accessToken });
+  }
+
   public changePassword(
     accessToken: string,
     body: object
