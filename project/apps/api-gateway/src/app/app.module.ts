@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClientsModule } from './clients/clients.module';
 import { CommentsModule } from './comments/comments.module';
 import { FeedModule } from './feed/feed.module';
+import { FilesModule } from './files/files.module';
 import { HealthModule } from './health/health.module';
 import { LikesModule } from './likes/likes.module';
 import { PostsModule } from './posts/posts.module';
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     ProfileModule,
     CommentsModule,
     FeedModule,
+    FilesModule,
     LikesModule,
     TagsModule,
     HealthModule,
