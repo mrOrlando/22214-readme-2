@@ -14,6 +14,31 @@ Content-Type: application/json
 
 ###
 
+# Register with an avatar (multipart/form-data): a jpg or png image up to 500 KB
+POST http://{{host}}/api/auth/register HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="email"
+
+jane.doe@example.com
+--boundary
+Content-Disposition: form-data; name="name"
+
+Jane Doe
+--boundary
+Content-Disposition: form-data; name="password"
+
+123456
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="cat.jpg"
+Content-Type: image/jpeg
+
+< ../../../../../../markup/img/cat.jpg
+--boundary--
+
+###
+
 # Register with invalid data (400: all errors at once)
 POST http://{{host}}/api/auth/register HTTP/1.1
 Content-Type: application/json

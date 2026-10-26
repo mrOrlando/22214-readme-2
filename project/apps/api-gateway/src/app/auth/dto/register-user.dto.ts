@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { UserNameLength, UserPasswordLength } from '../auth.constants';
 
@@ -32,4 +32,13 @@ export class RegisterUserDto {
   @IsString()
   @IsNotEmpty()
   public password!: string;
+
+  // The file is read by the controller; the property only documents the field
+  @ApiPropertyOptional({
+    description:
+      'Avatar: a jpg or png image up to 500 KB (multipart/form-data)',
+    type: 'string',
+    format: 'binary',
+  })
+  public avatar?: unknown;
 }

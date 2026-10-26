@@ -6,10 +6,14 @@ import {
   HttpStatus,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -17,6 +21,8 @@ import {
 import { fillDto } from '@project/helpers';
 import type { TokenPayload } from '@project/types';
 import { UserClient } from '../clients/user.client';
+import { MAX_AVATAR_SIZE } from '../files/files.constants';
+import { AuthService } from './auth.service';
 import { AccessToken, CurrentUser } from './decorators';
 import {
   ChangePasswordDto,
@@ -30,9 +36,16 @@ import { LoggedUserRdo, TokenRdo, UserRdo } from './rdo';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly userClient: UserClient) {}
+  constructor(
+    private readonly userClient: UserClient,
+    private readonly authService: AuthService
+  ) {}
 
-  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOperation({
+    summary:
+      'Register a new user. The data can be sent as JSON or, with an avatar, as multipart/form-data',
+  })
+  @ApiConsumes('application/json', 'multipart/form-data')
   @ApiResponse({ status: HttpStatus.CREATED, type: UserRdo })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -42,9 +55,17 @@ export class AuthController {
     status: HttpStatus.CONFLICT,
     description: 'The user with this e-mail already exists.',
   })
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: { files: 1, fileSize: MAX_AVATAR_SIZE },
+    })
+  )
   @Post('register')
-  public async register(@Body() dto: RegisterUserDto): Promise<UserRdo> {
-    const user = await this.userClient.register(dto);
+  public async register(
+    @Body() dto: RegisterUserDto,
+    @UploadedFile() avatar?: Express.Multer.File
+  ): Promise<UserRdo> {
+    const user = await this.authService.register(dto, avatar);
     return fillDto(UserRdo, user);
   }
 
