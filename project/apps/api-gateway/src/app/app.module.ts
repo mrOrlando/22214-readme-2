@@ -6,6 +6,7 @@ import { CommentsModule } from './comments/comments.module';
 import { HealthModule } from './health/health.module';
 import { LikesModule } from './likes/likes.module';
 import { PostsModule } from './posts/posts.module';
+import { ProfileModule } from './profile/profile.module';
 import { TagsModule } from './tags/tags.module';
 import { UsersModule } from './users/users.module';
 
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AuthModule,
     PostsModule,
+    ProfileModule,
     CommentsModule,
     LikesModule,
     TagsModule,
