@@ -45,3 +45,6 @@ Thumbs.db
 
 # Environment variables
 *.env
+
+# Files uploaded to the file server
+uploads/
