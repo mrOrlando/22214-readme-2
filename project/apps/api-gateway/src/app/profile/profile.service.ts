@@ -22,6 +22,34 @@ export class ProfileService {
     return { ...details, postsCount: posts.totalItems, isSubscribed };
   }
 
+  public async getSubscriptions(accessToken: string) {
+    const { authorIds } = await this.userClient.getSubscriptions(accessToken);
+    if (authorIds.length === 0) {
+      return [];
+    }
+
+    const authors = new Map(
+      (await this.userClient.getUsersByIds(authorIds)).map((author) => [
+        author.id,
+        author,
+      ])
+    );
+
+    // The newest subscription goes first; deleted users are skipped
+    return authorIds.flatMap((id) => authors.get(id) ?? []);
+  }
+
+  public async subscribe(accessToken: string, authorId: string): Promise<void> {
+    await this.userClient.subscribe(accessToken, authorId);
+  }
+
+  public async unsubscribe(
+    accessToken: string,
+    authorId: string
+  ): Promise<void> {
+    await this.userClient.unsubscribe(accessToken, authorId);
+  }
+
   private async isSubscribed(
     authorId: string,
     accessToken?: string
