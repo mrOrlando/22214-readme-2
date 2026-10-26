@@ -3,6 +3,7 @@ import { ConfigApiGatewayModule } from '@project/config';
 import { AuthModule } from './auth/auth.module';
 import { ClientsModule } from './clients/clients.module';
 import { HealthModule } from './health/health.module';
+import { TagsModule } from './tags/tags.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -11,6 +12,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ClientsModule,
     HealthModule,
+    TagsModule,
     UsersModule,
   ],
 })

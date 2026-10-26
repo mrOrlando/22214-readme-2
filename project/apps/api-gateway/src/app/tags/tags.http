@@ -1,0 +1,6 @@
+@hostname=localhost
+@port=4000
+@host={{hostname}}:{{port}}
+
+# Get tags of the posts
+GET http://{{host}}/api/tags HTTP/1.1
