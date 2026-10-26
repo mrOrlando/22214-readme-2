@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
-import { UserRepository } from './user.repository';
-import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SubscriptionModule } from '../subscription/subscription.module';
+import { UserController } from './user.controller';
+import { UserRepository } from './user.repository';
 import { UserModel, UserModelSchema } from './user.schema';
+import { UserService } from './user.service';
 
 @Module({
   imports: [
@@ -12,9 +14,10 @@ import { UserModel, UserModelSchema } from './user.schema';
         schema: UserModelSchema,
       },
     ]),
+    SubscriptionModule,
   ],
   controllers: [UserController],
-  providers: [UserRepository],
+  providers: [UserRepository, UserService],
   exports: [UserRepository],
 })
 export class UserModule {}

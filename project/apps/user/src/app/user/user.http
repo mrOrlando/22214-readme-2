@@ -1,6 +1,60 @@
 @hostname=localhost
 @port=3333
 @host={{hostname}}:{{port}}
+@userId=658170cbb954e9f5b905ccf4
+@authorId=6581762309c030b503e30512
 
-# Get users
+# Log in (the subscription requests below need the access token)
+# @name login
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "keks@readme.local",
+  "password": "123456"
+}
+
+###
+
+# Get public data of several users
+GET http://{{host}}/api/users?ids={{userId}},{{authorId}} HTTP/1.1
+
+###
+
+# Try to get users without IDs (400)
 GET http://{{host}}/api/users HTTP/1.1
+
+###
+
+# Get details of a user: registration date and number of subscribers
+GET http://{{host}}/api/users/{{authorId}} HTTP/1.1
+
+###
+
+# Subscribe to an author
+POST http://{{host}}/api/users/{{authorId}}/subscription HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Subscribe to the same author again (409)
+POST http://{{host}}/api/users/{{authorId}}/subscription HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Subscribe to yourself (400)
+POST http://{{host}}/api/users/{{userId}}/subscription HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Get the authors the current user is subscribed to
+GET http://{{host}}/api/users/me/subscriptions HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Unsubscribe from an author
+DELETE http://{{host}}/api/users/{{authorId}}/subscription HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
