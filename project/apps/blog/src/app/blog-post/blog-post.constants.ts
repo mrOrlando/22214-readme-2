@@ -52,3 +52,6 @@ export const POST_FORBIDDEN_ERROR =
   'Only the author can edit or delete the post';
 export const POST_ALREADY_REPOSTED_ERROR =
   'Post is already reposted by this user';
+
+// The feed of a user contains posts of the authors he is subscribed to
+export const MAX_AUTHORS_COUNT = 1000;

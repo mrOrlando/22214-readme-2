@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
   IsIn,
   IsInt,
   IsMongoId,
@@ -13,6 +15,7 @@ import { PostType } from '@project/types';
 import {
   DEFAULT_PAGE_COUNT,
   DEFAULT_POST_COUNT_LIMIT,
+  MAX_AUTHORS_COUNT,
   PostSortType,
 } from '../blog-post.constants';
 
@@ -62,6 +65,33 @@ export class BlogPostQuery {
   @IsOptional()
   @IsMongoId()
   public userId?: string;
+
+  @ApiProperty({
+    description:
+      'Comma separated IDs of authors: return only posts of these authors. Used to build the feed',
+    required: false,
+    example: '658170cbb954e9f5b905ccf4,6581762309c030b503e30512',
+    type: String,
+  })
+  @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string'
+      ? [...new Set(value.split(',').map((id) => id.trim()))]
+      : value
+  )
+  @ArrayNotEmpty()
+  @ArrayMaxSize(MAX_AUTHORS_COUNT)
+  @IsMongoId({ each: true })
+  public userIds?: string[];
+
+  @ApiProperty({
+    description: 'Return only posts liked by this user',
+    required: false,
+    example: '658170cbb954e9f5b905ccf4',
+  })
+  @IsOptional()
+  @IsMongoId()
+  public likedBy?: string;
 
   @ApiProperty({
     description: 'Return only posts of this type',

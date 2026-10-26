@@ -68,7 +68,8 @@ export class BlogPostRepository extends BasePostgresRepository<
   ): Promise<PaginationResult<BlogPostEntity>> {
     const where: Prisma.PostWhereInput = {
       status: PostStatus.Published,
-      userId: query.userId,
+      userId: this.getAuthorFilter(query),
+      likes: query.likedBy ? { some: { userId: query.likedBy } } : undefined,
       type: query.type,
       tags: query.tag ? { some: { title: query.tag } } : undefined,
     };
@@ -91,6 +92,18 @@ export class BlogPostRepository extends BasePostgresRepository<
       itemsPerPage: query.limit,
       totalItems,
     };
+  }
+
+  // userId and userIds are combined: a post must satisfy both of them
+  private getAuthorFilter({
+    userId,
+    userIds,
+  }: BlogPostQuery): Prisma.PostWhereInput['userId'] {
+    if (userId && userIds) {
+      return userIds.includes(userId) ? userId : { in: [] };
+    }
+
+    return userId ?? (userIds ? { in: userIds } : undefined);
   }
 
   public async findDrafts(userId: string): Promise<BlogPostEntity[]> {

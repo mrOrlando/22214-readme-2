@@ -19,6 +19,12 @@ export class UserModel extends Document implements AuthUser {
   @Prop()
   passwordHash!: string;
 
+  // Path of the avatar uploaded to the file server
+  @Prop({ type: String, default: null })
+  public avatar?: string | null;
+
+  public createdAt?: Date;
+
   @Prop({
     required: true,
     type: String,

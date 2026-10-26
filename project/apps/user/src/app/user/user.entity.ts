@@ -9,6 +9,8 @@ export class UserEntity implements AuthUser, Entity<EntityIdType, AuthUser> {
   public name!: string;
   public role!: UserRole;
   public passwordHash!: string;
+  public avatar?: string | null;
+  public createdAt?: Date;
 
   constructor(user: AuthUser) {
     this.populate(user);
@@ -21,6 +23,8 @@ export class UserEntity implements AuthUser, Entity<EntityIdType, AuthUser> {
       name: this.name,
       role: this.role,
       passwordHash: this.passwordHash,
+      avatar: this.avatar ?? null,
+      createdAt: this.createdAt,
     };
   }
 
@@ -30,6 +34,8 @@ export class UserEntity implements AuthUser, Entity<EntityIdType, AuthUser> {
     this.name = user.name;
     this.role = user.role;
     this.passwordHash = user.passwordHash;
+    this.avatar = user.avatar ?? null;
+    this.createdAt = user.createdAt ?? undefined;
   }
 
   public async setPassword(password: string): Promise<UserEntity> {
