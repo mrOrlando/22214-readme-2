@@ -1,0 +1,106 @@
+@hostname=localhost
+@port=4000
+@host={{hostname}}:{{port}}
+
+# Register a new user
+POST http://{{host}}/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "name": "John Doe",
+  "password": "123456"
+}
+
+###
+
+# Register with an avatar (multipart/form-data): a jpg or png image up to 500 KB
+POST http://{{host}}/api/auth/register HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="email"
+
+jane.doe@example.com
+--boundary
+Content-Disposition: form-data; name="name"
+
+Jane Doe
+--boundary
+Content-Disposition: form-data; name="password"
+
+123456
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="cat.jpg"
+Content-Type: image/jpeg
+
+< ../../../../../../markup/img/cat.jpg
+--boundary--
+
+###
+
+# Register with invalid data (400: all errors at once)
+POST http://{{host}}/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "name": "Jo",
+  "password": "1"
+}
+
+###
+
+# Log in
+# @name login
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "123456"
+}
+
+###
+
+# Log in with a wrong password (401)
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrong-password"
+}
+
+###
+
+# Get the current user
+GET http://{{host}}/api/auth/me HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Get the current user without a token (401)
+GET http://{{host}}/api/auth/me HTTP/1.1
+
+###
+
+# Get a new pair of tokens (a refresh token works once)
+POST http://{{host}}/api/auth/refresh HTTP/1.1
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.refreshToken}}"
+}
+
+###
+
+# Change the password
+PATCH http://{{host}}/api/auth/password HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "123456",
+  "newPassword": "654321"
+}
