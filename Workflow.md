@@ -147,6 +147,28 @@ npm install
 
 ---
 
+### API Gateway: единая точка входа для фронтенда
+
+Фронтенд работает только с шлюзом (`http://localhost:4000/api`, Swagger: [http://localhost:4000/spec](http://localhost:4000/spec)). Шлюз не содержит бизнес-правил: он проверяет access-токен, подставляет автора из токена (данные от клиента игнорируются), собирает ответы нескольких сервисов и приводит ошибки к одному виду (4xx сервиса передаются как есть, 5xx превращаются в 502, недоступный сервис даёт 503, медленный 504). Сервисы user, blog, file-server и notification должны быть доступны только шлюзу.
+
+**Порядок запуска:** Docker (`docker compose up -d` в `apps/blog`, `apps/user`, `apps/notification`) → сервисы user, blog, file-server, notification → api-gateway. Проверка: `GET /api/health` показывает, какие сервисы отвечают.
+
+**Env:** `apps/api-gateway/api-gateway.env` (образец — `api-gateway.env.example`): адреса сервисов, `JWT_ACCESS_TOKEN_SECRET` (тот же, что в `user.env`) и `CORS_ORIGINS`.
+
+| Область | Маршруты |
+|---------|----------|
+| Авторизация | `POST /auth/register` (JSON или multipart с `avatar`), `POST /auth/login`, `POST /auth/refresh`, `GET /auth/me`, `PATCH /auth/password` |
+| Посты | `GET /posts` (страницы по 25, сортировка `date`, `likes`, `comments`, фильтры `userId`, `type`, `tag`), `GET /posts/search?title=`, `GET /posts/drafts`, `GET /posts/:id`, `POST /posts` (для фото multipart с `photo`), `PATCH /posts/:id`, `DELETE /posts/:id`, `POST /posts/:id/repost` |
+| Комментарии и лайки | `GET` и `POST /posts/:id/comments`, `DELETE /comments/:id`, `POST` и `DELETE /posts/:id/likes` |
+| Профиль и подписки | `GET /users/:id`, `POST` и `DELETE /users/:id/subscription`, `GET /users/me/subscriptions`, `GET /users/me/likes` |
+| Лента | `GET /feed`: посты подписок и свои, те же страницы, сортировка и фильтры |
+| Теги и файлы | `GET /tags`, `GET /files/:id` |
+| Служебное | `GET /health` |
+
+Рассылка (`POST /api/notifications/send` сервиса notification) через шлюз не публикуется: её запускает `cron`. Примеры запросов лежат в `.http`-файлах рядом с кодом шлюза (`apps/api-gateway/src/app/*/*.http`).
+
+---
+
 ---
 
 <a id="prisma"></a>
