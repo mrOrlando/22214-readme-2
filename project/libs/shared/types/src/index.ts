@@ -12,3 +12,5 @@ export * from './refresh-token-payload.interface';
 export * from './token.interface';
 export * from './jwt-token.interface';
 export * from './pagination.interface';
+export * from './rabbit-event.enum';
+export * from './notification-payload.interface';

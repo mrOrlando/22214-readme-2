@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigBlogModule } from '@project/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BlogTagModule } from './blog-tag/blog-tag.module';
@@ -7,7 +8,13 @@ import { BlogLikeModule } from './blog-like/blog-like.module';
 import { BlogPostModule } from './blog-post/blog-post.module';
 
 @Module({
-  imports: [BlogTagModule, BlogCommentModule, BlogLikeModule, BlogPostModule],
+  imports: [
+    ConfigBlogModule.register(),
+    BlogTagModule,
+    BlogCommentModule,
+    BlogLikeModule,
+    BlogPostModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
