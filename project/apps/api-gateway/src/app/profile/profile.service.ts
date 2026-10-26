@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BlogClient } from '../clients/blog.client';
 import { UserClient } from '../clients/user.client';
+import { PostsService } from '../posts/posts.service';
 
 // The user service knows registration date and subscribers, the blog service
 // knows posts: the gateway joins them in one profile
@@ -8,7 +9,8 @@ import { UserClient } from '../clients/user.client';
 export class ProfileService {
   constructor(
     private readonly userClient: UserClient,
-    private readonly blogClient: BlogClient
+    private readonly blogClient: BlogClient,
+    private readonly postsService: PostsService
   ) {}
 
   public async getProfile(id: string, viewerAccessToken?: string) {
@@ -48,6 +50,10 @@ export class ProfileService {
     authorId: string
   ): Promise<void> {
     await this.userClient.unsubscribe(accessToken, authorId);
+  }
+
+  public async getLikedPosts(userId: string, query: object) {
+    return this.postsService.getPosts({ ...query, likedBy: userId });
   }
 
   private async isSubscribed(

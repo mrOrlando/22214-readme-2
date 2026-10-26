@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -20,6 +21,8 @@ import type { TokenPayload } from '@project/types';
 import { AccessToken, CurrentUser } from '../auth/decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { PostsQuery } from '../posts/dto';
+import { PostsWithPaginationRdo } from '../posts/rdo';
 import { AuthorRdo } from '../users/author.rdo';
 import { UserProfileRdo } from './rdo/user-profile.rdo';
 import { ProfileService } from './profile.service';
@@ -56,6 +59,23 @@ export class ProfileController {
   ): Promise<AuthorRdo[]> {
     const authors = await this.profileService.getSubscriptions(accessToken);
     return authors.map((author) => fillDto(AuthorRdo, author));
+  }
+
+  @ApiOperation({
+    summary:
+      'Get published posts liked by the current user, with the same pagination, sorting and filters as the list of posts',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({ status: HttpStatus.OK, type: PostsWithPaginationRdo })
+  @ApiResponse(UNAUTHORIZED)
+  @UseGuards(JwtAuthGuard)
+  @Get('/me/likes')
+  public async likes(
+    @CurrentUser() { sub }: TokenPayload,
+    @Query() query: PostsQuery
+  ): Promise<PostsWithPaginationRdo> {
+    const posts = await this.profileService.getLikedPosts(sub, query);
+    return fillDto(PostsWithPaginationRdo, posts);
   }
 
   @ApiOperation({
