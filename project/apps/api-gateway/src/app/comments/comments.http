@@ -1,0 +1,53 @@
+@hostname=localhost
+@port=4000
+@host={{hostname}}:{{port}}
+@postId=ab04593b-da99-4fe3-8b4b-e06d82e2efdd
+
+# Log in
+# @name login
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "keks@readme.local",
+  "password": "123456"
+}
+
+###
+
+# Get comments of a post with their authors (50 per page, newest first)
+GET http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
+
+###
+
+# Get the second page, 1 comment per page
+GET http://{{host}}/api/posts/{{postId}}/comments?page=2&limit=1 HTTP/1.1
+
+###
+
+# Comment a post; the author is the current user
+# @name createComment
+POST http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "message": "Great post, thank you for sharing!"
+}
+
+###
+
+# Comment with a too short text (400)
+POST http://{{host}}/api/posts/{{postId}}/comments HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "message": "Short"
+}
+
+###
+
+# Delete an own comment
+DELETE http://{{host}}/api/comments/{{createComment.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}

@@ -1,9 +1,31 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigApiGatewayModule } from '@project/config';
+import { AuthModule } from './auth/auth.module';
+import { ClientsModule } from './clients/clients.module';
+import { CommentsModule } from './comments/comments.module';
+import { FeedModule } from './feed/feed.module';
+import { FilesModule } from './files/files.module';
+import { HealthModule } from './health/health.module';
+import { LikesModule } from './likes/likes.module';
+import { PostsModule } from './posts/posts.module';
+import { ProfileModule } from './profile/profile.module';
+import { TagsModule } from './tags/tags.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigApiGatewayModule.register(),
+    ClientsModule,
+    UsersModule,
+    AuthModule,
+    PostsModule,
+    ProfileModule,
+    CommentsModule,
+    FeedModule,
+    FilesModule,
+    LikesModule,
+    TagsModule,
+    HealthModule,
+  ],
 })
 export class AppModule {}

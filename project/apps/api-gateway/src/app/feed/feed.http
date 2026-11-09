@@ -1,0 +1,30 @@
+@hostname=localhost
+@port=4000
+@host={{hostname}}:{{port}}
+
+# Log in
+# @name login
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "keks@readme.local",
+  "password": "123456"
+}
+
+###
+
+# Get the feed: posts of the authors the user is subscribed to and own posts
+GET http://{{host}}/api/feed HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# The feed has the same pagination, sorting and filters as the list of posts
+GET http://{{host}}/api/feed?page=1&limit=10&sortBy=likes&type=quote HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# The feed without a token (401)
+GET http://{{host}}/api/feed HTTP/1.1

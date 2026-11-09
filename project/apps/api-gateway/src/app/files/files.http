@@ -1,0 +1,12 @@
+@hostname=localhost
+@port=4000
+@host={{hostname}}:{{port}}
+
+# Download an image: the path of a file is in the data of a user or a post,
+# for example "avatar": "/api/files/<id>"
+GET http://{{host}}/api/files/5b8c93e4-92db-43c9-be4e-d6f94f08cda2.png HTTP/1.1
+
+###
+
+# Download a file with an invalid ID (400)
+GET http://{{host}}/api/files/..%2F..%2Fetc%2Fpasswd HTTP/1.1

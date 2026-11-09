@@ -1,0 +1,178 @@
+@hostname=localhost
+@port=4000
+@host={{hostname}}:{{port}}
+@postId=ab04593b-da99-4fe3-8b4b-e06d82e2efdd
+
+# Log in (the requests below that need a token use it)
+# @name login
+POST http://{{host}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "keks@readme.local",
+  "password": "123456"
+}
+
+###
+
+# Get published posts with their authors (25 per page, newest first)
+GET http://{{host}}/api/posts HTTP/1.1
+
+###
+
+# Page, sorting and filters
+GET http://{{host}}/api/posts?page=1&limit=2&sortBy=likes&type=text&tag=books HTTP/1.1
+
+###
+
+# Invalid query parameters (400)
+GET http://{{host}}/api/posts?limit=100&sortBy=rating HTTP/1.1
+
+###
+
+# Search by words of the title
+GET http://{{host}}/api/posts/search?title=javascript nestjs HTTP/1.1
+
+###
+
+# Get a post
+GET http://{{host}}/api/posts/{{postId}} HTTP/1.1
+
+###
+
+# Get drafts of the current user
+GET http://{{host}}/api/posts/drafts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Create a text post; the author is the current user
+# @name createPost
+POST http://{{host}}/api/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "type": "text",
+  "title": "Solaris: a novel by Stanisław Lem",
+  "announcement": "A thought-provoking exploration of human consciousness and alien intelligence.",
+  "text": "Recently finished reading 'Solaris'. The ocean planet that reads the minds of the crew is one of the most unusual images in science fiction.",
+  "tags": ["books", "SciFi"]
+}
+
+###
+
+# Create a quote post
+POST http://{{host}}/api/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "type": "quote",
+  "quoteText": "Simplicity is prerequisite for reliability.",
+  "quoteAuthor": "Edsger Dijkstra"
+}
+
+###
+
+# Create a link post as a draft
+POST http://{{host}}/api/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "type": "link",
+  "linkUrl": "https://docs.nestjs.com",
+  "linkDescription": "NestJS documentation",
+  "status": "draft"
+}
+
+###
+
+# Create a photo post (multipart/form-data): a jpg or png image up to 1 MB
+POST http://{{host}}/api/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="type"
+
+photo
+--boundary
+Content-Disposition: form-data; name="tags"
+
+travel
+--boundary
+Content-Disposition: form-data; name="photo"; filename="barbershop.png"
+Content-Type: image/png
+
+< ../../../../../../markup/img/barbershop.png
+--boundary--
+
+###
+
+# Create a post with invalid data (400: all errors at once)
+POST http://{{host}}/api/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "type": "text",
+  "title": "Too short"
+}
+
+###
+
+# Create a post without a token (401)
+POST http://{{host}}/api/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "quote"
+}
+
+###
+
+# Update an own post
+PATCH http://{{host}}/api/posts/{{createPost.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Solaris: a novel by Stanisław Lem (updated)",
+  "tags": ["classic"]
+}
+
+###
+
+# Move a post to drafts
+PATCH http://{{host}}/api/posts/{{createPost.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "status": "draft"
+}
+
+###
+
+# Publish a post
+PATCH http://{{host}}/api/posts/{{createPost.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "status": "published"
+}
+
+###
+
+# Repost a post of another user
+POST http://{{host}}/api/posts/{{postId}}/repost HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+
+# Delete an own post
+DELETE http://{{host}}/api/posts/{{createPost.response.body.id}} HTTP/1.1
+Authorization: Bearer {{login.response.body.accessToken}}
